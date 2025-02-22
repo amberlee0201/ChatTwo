@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=chat212345
+    volumes:
+      - redis-data:/data
+    networks:
+      - redis-network
+    container_name: redis-chat2
+
+  mysql:
+    image: mysql:latest
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: chat2
+      MYSQL_USER: chat2
+      MYSQL_PASSWORD: chat212345
+      MYSQL_ROOT_PASSWORD: 1234
+    volumes:
+      - "./mysql/conf.d:/etc/mysql/conf.d"
+      - "./mysql/data:/var/lib/mysql"
+    container_name: mysql-chat2
+
+volumes:
+  redis-data:
+
+networks:
+  redis-network:
+    driver: bridge
