@@ -44,6 +44,13 @@ dependencies {
 	//db
 	runtimeOnly 'com.mysql:mysql-connector-j'
 
+	// aws dynamodb
+	implementation platform('software.amazon.awssdk:bom:2.21.37')
+	implementation 'software.amazon.awssdk:dynamodb-enhanced'
+	implementation 'software.amazon.awssdk:dynamodb'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'org.springframework.data:spring-data-commons'
+
 	//lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
