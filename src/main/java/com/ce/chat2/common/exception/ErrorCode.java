@@ -13,7 +13,7 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "GLOBAL_404_ERROR", "404 에러입니다. 요청한 데이터를 서버가 찾을 수 없습니다."),
     REQUEST_IS_NOT_VALID(HttpStatus.BAD_REQUEST, "REQUEST_IS_NOT_VALID","request 값이 잘못되었습니다. 혹은 json 역직렬화를 할 수 없는 형식입니다."),
 
-    USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND", "존재하지 않는 회원입니다");
+    USER_NOT_FOUND(HttpStatus.BAD_REQUEST,"USER_NOT_FOUND", "존재하지 않는 유저입니다.");
 
     private final HttpStatus status;
     private final String code;
