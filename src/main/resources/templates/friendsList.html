@@ -8,19 +8,49 @@
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> 
     <link rel="stylesheet" as="style" crossorigin
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />   
+
+    <style>
+        .color-db {
+            background-color: #0C356A !important;
+        }
+        .color-lb {
+            background-color: #0174be !important;
+        }
+        .color-dy {
+            background-color: #ffc436 !important;
+        }
+        .color-ly {
+            background-color: #fff0ce !important;
+        }
+        .container {
+            width: 600px;
+        }
+        .profile-image {
+            width: 40px; height: 40px; border-radius: 50%;
+        }
+        .vertical-middle {
+            vertical-align: middle;
+        }
+        .width-180 {
+            width: 180px;
+        }
+        .width-360 {
+            width: 360px;
+        }        
+    </style>
 </head>
-<body class="bg-body-tertiary">
-    <div class="container text-center position-absolute top-50 start-50 translate-middle" style="width: 400px">
-        <h1>친구 목록</h1>
+<body class="color-db">
+    <div class="container text-center position-absolute top-50 start-50 translate-middle">
         <div>
-            <table class="table">
+            <table class="table color-ly">
                 <thead>
                     <tr>
-                        <th>아이디</th>
-                        <th>프로필 사진</th>
-                        <th>이름</th>
+                        <th class="width-180 color-ly">내 프로필 사진</th>
+                        <th class="width-360 vertical-middle color-ly">내 이름</th>
                     </tr>
                 </thead>
+            </table>
+            <table class="table">
                 <tbody id="friendsList">
                 </tbody>
             </table>
@@ -36,9 +66,8 @@
                     const tr = document.createElement('tr');
                     console.log(friend);
                     tr.innerHTML = `
-                        <td>${friend.to.id}</td>
-                        <td><img src="${friend.to.image}" style="width: 50px; height: 50px; border-radius: 50%;"></td>
-                        <td>${friend.to.name}</td>
+                        <td class="width-180"><img src="${friend.to.image}" class="profile-image" ></td>
+                        <td class="width-360 vertical-middle">${friend.to.name}</td>
                     `;
                     friendsList.appendChild(tr);
                 });
