@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @Entity
 @Getter
@@ -33,11 +34,22 @@ public class User extends BaseEntity {
     @Column(nullable = false, name = "user_image")
     String image;
 
-    public static User of(String providerId, String name, String image){
+    UserRole role;
+
+    public static User of(String providerId, String name, String image, UserRole userRole){
         return User.builder()
             .providerId(providerId)
             .name(name)
             .image(image)
+            .role(userRole)
             .build();
+    }
+
+    public static User of(OAuth2User loginUser) {
+
+        return User.of(loginUser.getAttribute("sub"),
+            loginUser.getAttribute("name"),
+            loginUser.getAttribute("picture"),
+            UserRole.USER);
     }
 }
