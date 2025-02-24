@@ -52,4 +52,9 @@ public class User extends BaseEntity {
             loginUser.getAttribute("picture"),
             UserRole.USER);
     }
+
+    //TODO S3 연동 후 image 변경 추가
+    public void updateInfo(String username){
+        this.name = username;
+    }
 }
