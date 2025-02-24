@@ -2,6 +2,8 @@ package com.ce.chat2.follow.entity;
 
 import com.ce.chat2.common.entity.BaseEntity;
 import com.ce.chat2.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,6 +23,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" }) // 엔티티를 JSON으로 변환할 때 발생하는 InvalidDefinitionException:
+                                                                 // No serializer found 오류를 피하기 위해 추가
 public class Follow extends BaseEntity {
 
     @Id
