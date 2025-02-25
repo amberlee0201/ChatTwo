@@ -1,6 +1,7 @@
 package com.ce.chat2.user.entity;
 
 import com.ce.chat2.common.entity.BaseEntity;
+import com.ce.chat2.common.s3.S3FileDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -34,6 +35,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, name = "user_image")
     String image;
 
+    @Column(name = "user_fileName")
+    String fileName;
+
     UserRole role;
 
     public static User of(String providerId, String name, String image, UserRole userRole){
@@ -53,8 +57,9 @@ public class User extends BaseEntity {
             UserRole.USER);
     }
 
-    //TODO S3 연동 후 image 변경 추가
-    public void updateInfo(String username){
+    public void updateInfo(String username, S3FileDto dto){
         this.name = username;
+        this.image = dto.getFilePath();
+        this.fileName = dto.getFileName();
     }
 }

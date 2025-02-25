@@ -4,6 +4,7 @@ import com.ce.chat2.common.oauth.Oauth2UserDetails;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.exception.UnAuthorizedUser;
 import com.ce.chat2.user.service.UserService;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,7 +44,7 @@ public class UserController {
         @RequestParam("name") String name,
         @RequestParam("image") MultipartFile image,
         Model model
-    ){
+    ) throws IOException {
         User savedUser = userService.updateUserInfo(oauth2User.getUser(),id, name, image);
         model.addAttribute("user", savedUser);
         return "myPage";
