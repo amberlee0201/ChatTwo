@@ -1,5 +1,7 @@
 package com.ce.chat2.follow.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +13,6 @@ public interface FollowRepository extends JpaRepository<Follow, Integer> {
 
     Iterable<Follow> getFollowsByFrom(User from);
 
-    Follow findByFromAndTo(User currentUser, User friend);
+    Optional<Follow> findByFromAndTo(User currentUser, User friend);
 
 }
