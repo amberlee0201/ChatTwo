@@ -28,7 +28,7 @@ public class FollowService {
         return friends;
     }
 
-    public Follow setFollow(User currentUser, User friend) {
+    public void setFollow(User currentUser, User friend) {
         // 친구 목록에서 이미 친구인지 확인.
         Follow follow = followRepository.findByFromAndTo(currentUser, friend).orElse(null);
 
@@ -37,7 +37,6 @@ public class FollowService {
         }
         follow = Follow.builder().from(currentUser).to(friend).isBreak(false).build();
         followRepository.save(follow);
-        return follow;
     }
 
     public void deleteFollow(User currentUser, User friend) {

@@ -4,17 +4,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
 import com.ce.chat2.follow.entity.Follow;
-import com.ce.chat2.follow.exception.FollowNotFoundException;
-import com.ce.chat2.follow.repository.FollowRepository;
 import com.ce.chat2.follow.service.FollowService;
 import com.ce.chat2.user.entity.User;
-import com.ce.chat2.user.entity.UserRole;
 import com.ce.chat2.user.exception.USER_NOT_FOUND;
 import com.ce.chat2.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -52,7 +48,7 @@ public class ApiFollowController {
 
                 User friend = userRepository.findById(uid).orElseThrow(() -> new USER_NOT_FOUND("User not found"));
 
-                Follow follow = followService.setFollow(currentUser, friend);
+                followService.setFollow(currentUser, friend);
 
                 return ResponseEntity.ok(friend);
         }
