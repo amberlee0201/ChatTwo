@@ -1,13 +1,13 @@
-package com.ce.chat2.friend.controller;
+package com.ce.chat2.follow.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class FriendController {
+public class FollowController {
 
     @GetMapping("/friends")
     String friendsList() {
-        return "friendsList";
+        return "followList";
     }
 }
