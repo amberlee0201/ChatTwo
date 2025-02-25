@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ce.chat2.follow.entity.Follow;
+import com.ce.chat2.follow.exception.AlreadyFollowingException;
 import com.ce.chat2.follow.exception.FollowNotFoundException;
 import com.ce.chat2.follow.repository.FollowRepository;
 import com.ce.chat2.user.entity.User;
@@ -17,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Service
-@Transactional(readOnly = true)
+@Transactional
 @Slf4j
 public class FollowService {
     private final FollowRepository followRepository;
@@ -33,7 +34,7 @@ public class FollowService {
         Follow follow = followRepository.findByFromAndTo(currentUser, friend).orElse(null);
 
         if (follow != null) {
-            throw new FollowNotFoundException("이미 친구입니다.");
+            throw new AlreadyFollowingException("이미 친구입니다.");
         }
         follow = Follow.builder().from(currentUser).to(friend).isBreak(false).build();
         followRepository.save(follow);

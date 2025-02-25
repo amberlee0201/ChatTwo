@@ -16,7 +16,8 @@ public enum ErrorCode {
             "request 값이 잘못되었습니다. 혹은 json 역직렬화를 할 수 없는 형식입니다."),
 
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND", "존재하지 않는 유저입니다."),
-    FOLLOW_NOT_FOUND(HttpStatus.BAD_REQUEST, "FOLLOW_NOT_FOUND", "이 사용자는 친구가 아닙니다.");
+    FOLLOW_NOT_FOUND(HttpStatus.BAD_REQUEST, "FOLLOW_NOT_FOUND", "이 사용자는 친구가 아닙니다."),
+    ALREADY_FOLLOWING(HttpStatus.BAD_REQUEST, "ALREADY_FOLLOWING", "이미 친구입니다.");
 
     private final HttpStatus status;
     private final String code;
