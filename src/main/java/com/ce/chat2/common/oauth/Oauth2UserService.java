@@ -2,6 +2,9 @@ package com.ce.chat2.common.oauth;
 
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.repository.UserRepository;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -22,11 +25,17 @@ public class Oauth2UserService extends DefaultOAuth2UserService {
         OAuth2User loginUser = super.loadUser(userRequest);
 
         String id = loginUser.getAttributes().get("sub").toString();
-        User user = userRepository.findByProviderId(id)
-            .orElseGet(() ->
-                userRepository.save(User.of(loginUser))
-            );
+        Optional<User> optionalUser = userRepository.findByProviderId(id);
 
-        return new Oauth2UserDetails(user, loginUser.getAttributes());
+        if(optionalUser.isPresent()){
+            Map<String, Object> attributes = new HashMap<>(loginUser.getAttributes());
+            User user = optionalUser.get();
+            attributes.put("name", optionalUser.get().getName());
+            attributes.put("picture", optionalUser.get().getImage());
+
+            return new Oauth2UserDetails(user, attributes);
+        }
+
+        return new Oauth2UserDetails(userRepository.save(User.of(loginUser)), loginUser.getAttributes());
     }
 }

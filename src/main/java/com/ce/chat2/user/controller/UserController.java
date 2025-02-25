@@ -36,7 +36,6 @@ public class UserController {
         Model model
     ){
         if(userId != oAuth2User.getUser().getId()) throw new UnAuthorizedUser();
-        log.info("imagePath = {}", oAuth2User.getUser().getImage());
         model.addAttribute("user", oAuth2User.getUser());
         return "myPage";
     }
