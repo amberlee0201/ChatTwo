@@ -11,4 +11,6 @@ public interface FollowRepository extends JpaRepository<Follow, Integer> {
 
     Iterable<Follow> getFollowsByFrom(User from);
 
+    Follow findByFromAndTo(User currentUser, User friend);
+
 }
