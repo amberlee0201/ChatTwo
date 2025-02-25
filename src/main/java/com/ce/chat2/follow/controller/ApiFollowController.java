@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,7 +67,7 @@ public class ApiFollowController {
 
         // 친구 찾기 API
         @GetMapping("/api/friends/find")
-        public ResponseEntity<List<User>> findFollow(@RequestPart("name") String name) {
+        public ResponseEntity<List<User>> findFollow(@RequestParam("name") String name) {
                 User currentUser = getCurrentUser();
 
                 List<User> users = followService.findFollow(currentUser, name);

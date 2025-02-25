@@ -10,4 +10,16 @@ public class FollowController {
     String friendsList() {
         return "followList";
     }
+
+    // TODO 아직 구현되지 않음
+    @GetMapping("/addFriend")
+    String addFriend() {
+        return "addFriend";
+    }
+
+    @GetMapping("/searchFriend")
+    String searchFriend() {
+        return "searchFriend";
+    }
+
 }

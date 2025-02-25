@@ -45,10 +45,11 @@
             <table class="table color-ly">
                 <thead>
                     <tr>
-                        <!-- TODO 아직 미구현된 상태 -->
-                        <th class="width-180 color-ly">내 프로필 사진</th>
-                        <th class="width-360 vertical-middle color-ly">내 이름</th>
-                        <th class="color-ly"><a class="btn btn-primary" role="button">내 프로필</a></th>
+                        <th class="width-180 vertical-middle color-ly">이름 검색</th>
+                        <th class="width-360 vertical-middle color-ly">
+                            <input type="text" id="name" class="form-control" placeholder="이름을 입력하세요">
+                        </th>
+                        <th class="color-ly"><a class="btn btn-primary" role="button" id="search">검색</a></th>
                     </tr>
                 </thead>
             </table>
@@ -56,27 +57,44 @@
                 <tbody id="friendsList">
                 </tbody>
             </table>
-            <a class="btn btn-primary" role="button" href="searchFriend">친구 검색</a>
+            <a class="btn btn-primary" role="button" href="friends">친구 목록</a>
         </div>
     </div>
     <script>
-        window.onload = function() {
-            fetch('/api/friends', {})
+
+        document.getElementById('search').onclick = function() {
+            const name = document.getElementById('name').value;
+            if (!name) {
+                alert("이름을 입력해주세요.");
+                return;
+            }
+
+            // Construct the URL with a query parameter
+            const url = new URL(`/api/friends/find`, window.location.origin); // `window.location.origin` ensures you use your base url
+            url.searchParams.append('name', name);
+
+            fetch(url, {
+                method: 'GET', // Now correct
+            })
             .then(response => response.json())
             .then(data => {
                 const friendsList = document.getElementById('friendsList');
+                friendsList.innerHTML = ''; // Clear previous results
                 data.forEach(friend => {
                     const tr = document.createElement('tr');
-                    console.log(friend);
                     tr.innerHTML = `
-                        <td class="width-180"><img src="${friend.to.image}" class="profile-image" ></td>
-                        <td class="width-360 vertical-middle">${friend.to.name}</td>
-                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${friend.to.id})">언팔로우</a></td>
+                        <td class="width-180"><img src="${friend.image}" class="profile-image" ></td>
+                        <td class="width-360 vertical-middle">${friend.name}</td>
+                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${friend.id})">언팔로우</a></td>
                     `;
                     friendsList.appendChild(tr);
                 });
+            })
+            .catch(error => {
+                console.error("Error fetching data: ", error)
+                alert("존재하지 않는 사용자입니다.");
             });
-        };
+        }
 
         unfollow = (id) => {
             fetch('/api/friends/' + id, {
