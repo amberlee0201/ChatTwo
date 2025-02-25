@@ -35,7 +35,7 @@
             width: 180px;
         }
         .width-360 {
-            width: 360px;
+            width: 260px;
         }        
     </style>
 </head>
@@ -45,8 +45,10 @@
             <table class="table color-ly">
                 <thead>
                     <tr>
+                        <!-- TODO 아직 미구현된 상태 -->
                         <th class="width-180 color-ly">내 프로필 사진</th>
                         <th class="width-360 vertical-middle color-ly">내 이름</th>
+                        <th class="color-ly"><a class="btn btn-primary" role="button">내 프로필</a></th>
                     </tr>
                 </thead>
             </table>
@@ -54,6 +56,7 @@
                 <tbody id="friendsList">
                 </tbody>
             </table>
+            <a class="btn btn-primary" role="button" href="addFriend">친구 추가</a>
         </div>
     </div>
     <script>
@@ -68,11 +71,24 @@
                     tr.innerHTML = `
                         <td class="width-180"><img src="${friend.to.image}" class="profile-image" ></td>
                         <td class="width-360 vertical-middle">${friend.to.name}</td>
+                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${friend.to.id})">언팔로우</a></td>
                     `;
                     friendsList.appendChild(tr);
                 });
             });
         };
+
+        unfollow = (id) => {
+            fetch('/api/friends/' + id, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            });
+        };
+
     </script>
 
       <!-- 부트스트랩용 js -->
