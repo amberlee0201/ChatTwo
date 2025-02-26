@@ -6,7 +6,7 @@ import com.ce.chat2.common.oauth.Oauth2UserDetails;
 import com.ce.chat2.follow.entity.Follow;
 import com.ce.chat2.follow.service.FollowService;
 import com.ce.chat2.user.entity.User;
-import com.ce.chat2.user.exception.USER_NOT_FOUND;
+import com.ce.chat2.user.exception.UserNotFound;
 import com.ce.chat2.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,54 +27,46 @@ public class ApiFollowController {
         private final FollowService followService;
         private final UserRepository userRepository;
 
-        private User getCurrentUser() {
-                // 현재 로그인한 사용자 정보를 가져오는 메소드
-                Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                if (principal instanceof Oauth2UserDetails) {
-                        return ((Oauth2UserDetails) principal).getUser();
-                } else {
-                        throw new IllegalStateException("Principal is not an instance of Oauth2UserDetails");
-                }
-        }
+        // 친구 목록을 가져오는 API - dto 반환하도록 변경할 것.
+        @GetMapping("/api/friends/{uid}")
+        public ResponseEntity<List<Follow>> getFollow(@AuthenticationPrincipal Oauth2UserDetails userDetails) {
+                // uid와 userDetails의 uid가 일치하는지 확인하는 코드
+                // if (uid != userDetails.getUid()) {
+                // throw new IllegalArgumentException("uid와 userDetails의 uid가 일치하지 않습니다.");
 
-        // 친구 목록을 가져오는 API
-        @GetMapping("/api/friends")
-        public ResponseEntity<List<Follow>> getFollow() {
-                User currentUser = getCurrentUser();
-                List<Follow> friends = followService.getFollow(currentUser);
+                List<Follow> friends = followService.getFollow(userDetails.getUser());
                 return ResponseEntity.ok(friends);
         }
 
-        // 친구 추가 API
+        // 친구 추가 API - dto 반환하도록 변경할 것.
         @PostMapping("/api/friends/{uid}")
-        public ResponseEntity<User> setFollow(@PathVariable("uid") Integer uid) {
-                User currentUser = getCurrentUser();
+        public ResponseEntity<User> setFollow(@PathVariable("uid") Integer uid,
+                        @AuthenticationPrincipal Oauth2UserDetails userDetails) {
+                User friend = userRepository.findById(uid).orElseThrow(() -> new UserNotFound());
 
-                User friend = userRepository.findById(uid).orElseThrow(() -> new USER_NOT_FOUND("User not found"));
-
-                followService.setFollow(currentUser, friend);
+                followService.setFollow(userDetails.getUser(), friend);
 
                 return ResponseEntity.ok(friend);
         }
 
-        // 친구 삭제 API
+        // 친구 삭제 API - dto 반환하도록 변경할 것.
         @DeleteMapping("/api/friends/{uid}")
-        public ResponseEntity<User> deleteFollow(@PathVariable("uid") Integer uid) {
-                User currentUser = getCurrentUser();
+        public ResponseEntity<User> deleteFollow(@PathVariable("uid") Integer uid,
+                        @AuthenticationPrincipal Oauth2UserDetails userDetails) {
 
-                User friend = userRepository.findById(uid).orElseThrow(() -> new USER_NOT_FOUND("User not found"));
+                User friend = userRepository.findById(uid).orElseThrow(() -> new UserNotFound());
 
-                followService.deleteFollow(currentUser, friend);
+                followService.deleteFollow(userDetails.getUser(), friend);
 
                 return ResponseEntity.ok(friend);
         }
 
-        // 친구 찾기 API
+        // 친구 찾기 API - dto 반환하도록 변경할 것.
         @GetMapping("/api/friends/find")
-        public ResponseEntity<List<User>> findFollow(@RequestParam("name") String name) {
-                User currentUser = getCurrentUser();
+        public ResponseEntity<List<User>> findFollow(@RequestParam("name") String name,
+                        @AuthenticationPrincipal Oauth2UserDetails userDetails) {
 
-                List<User> users = followService.findFollow(currentUser, name);
+                List<User> users = followService.findFollow(userDetails.getUser(), name);
 
                 return ResponseEntity.ok(users);
         }

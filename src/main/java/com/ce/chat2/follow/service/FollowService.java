@@ -11,7 +11,7 @@ import com.ce.chat2.follow.exception.AlreadyFollowingException;
 import com.ce.chat2.follow.exception.FollowNotFoundException;
 import com.ce.chat2.follow.repository.FollowRepository;
 import com.ce.chat2.user.entity.User;
-import com.ce.chat2.user.exception.USER_NOT_FOUND;
+import com.ce.chat2.user.exception.UserNotFound;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,14 +44,15 @@ public class FollowService {
         Follow follow = followRepository.findByFromAndTo(currentUser, friend)
                 .orElseThrow(() -> new FollowNotFoundException("친구 관계가 아닙니다."));
 
-        followRepository.delete(follow);
+        follow.setIsBreak(true);
+        followRepository.save(follow);
     }
 
     public List<User> findFollow(User currentUser, String name) {
-        // 현재 사용자의 친구 목록을 가져오기.
+        // 현재 사용자의 친구 목록을 가져오기. -> repository로 변경
         List<Follow> follows = getFollow(currentUser);
 
-        // 친구 목록에서 이름이 일치하는 친구 찾기.
+        // 친구 목록에서 이름이 일치하는 친구 찾기. -> 처음부터 쿼리로 찾는 것이 더 효율적.
         List<User> friends = new ArrayList<>();
         for (Follow follow : follows) {
             if (follow.getTo().getName().contains(name)) {
@@ -61,7 +62,7 @@ public class FollowService {
 
         // 만약 users가 비어있다면 친구를 찾지 못한 것이므로 에러를 반환.
         if (friends.isEmpty()) {
-            throw new USER_NOT_FOUND("친구를 찾을 수 없습니다.");
+            throw new UserNotFound();
         }
 
         return friends;
