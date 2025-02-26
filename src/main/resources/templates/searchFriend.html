@@ -58,6 +58,7 @@
                 </tbody>
             </table>
             <a class="btn btn-primary" role="button" href="friends">친구 목록</a>
+            <a class="btn btn-primary" role="button" href="addFriend">친구 추가</a>
         </div>
     </div>
     <script>
@@ -80,8 +81,14 @@
             .then(data => {
                 const friendsList = document.getElementById('friendsList');
                 friendsList.innerHTML = ''; // Clear previous results
+                // data가 배열이 아니면 오류 메시지이므로 바로 종료한다.
+                if (!Array.isArray(data)) {
+                    alert(data.message);
+                    return;
+                }
                 data.forEach(friend => {
                     const tr = document.createElement('tr');
+                    tr.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.id 값을 설정
                     tr.innerHTML = `
                         <td class="width-180"><img src="${friend.image}" class="profile-image" ></td>
                         <td class="width-360 vertical-middle">${friend.name}</td>
@@ -92,19 +99,22 @@
             })
             .catch(error => {
                 console.error("Error fetching data: ", error)
-                alert("존재하지 않는 사용자입니다.");
+                alert("오류가 발생하였습니다. 콘솔 로그를 참고하세요");
             });
         }
 
-        unfollow = (id) => {
+        // Function to unfollow a friend by their ID
+        const unfollow = (id) => {
             fetch('/api/friends/' + id, {
                 method: 'DELETE'
             })
             .then(response => {
-                if (response.ok) {
-                    location.reload();
+                    const row = document.querySelector("tr[data-id='" + id + "']");
+                    if (row) {
+                        row.remove();
+                    }
                 }
-            });
+            );
         };
 
     </script>
