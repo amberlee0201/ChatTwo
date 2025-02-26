@@ -2,6 +2,7 @@ package com.ce.chat2.follow.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,8 +11,10 @@ import com.ce.chat2.follow.entity.Follow;
 import com.ce.chat2.follow.exception.AlreadyFollowingException;
 import com.ce.chat2.follow.exception.FollowNotFoundException;
 import com.ce.chat2.follow.repository.FollowRepository;
+import com.ce.chat2.user.dto.UserResponse;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.exception.UserNotFound;
+import com.ce.chat2.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,45 +25,58 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FollowService {
     private final FollowRepository followRepository;
+    private final UserRepository userRepository;
 
-    public List<Follow> getFollow(User currentUser) {
-        List<Follow> friends = new ArrayList<>();
-        followRepository.getFollowsByFrom(currentUser).forEach(friends::add);
-        return friends;
+    public List<UserResponse> getFollow(User currentUser) {
+
+        return followRepository.findFollowsByFrom(currentUser).stream().map(Follow::getTo)
+                .map(UserResponse::to).collect(Collectors.toList());
     }
 
-    public void setFollow(User currentUser, User friend) {
-        // 친구 목록에서 이미 친구인지 확인.
+    public UserResponse setFollow(User currentUser, Integer uid) {
+
+        // 추가할 친구가 존재하는지 확인.
+        User friend = userRepository.findById(uid).orElseThrow(() -> new UserNotFound());
+
+        // 친구 목록에 있나 확인.
         Follow follow = followRepository.findByFromAndTo(currentUser, friend).orElse(null);
 
         if (follow != null) {
-            throw new AlreadyFollowingException("이미 친구입니다.");
-        }
-        follow = Follow.builder().from(currentUser).to(friend).isBreak(false).build();
-        followRepository.save(follow);
-    }
-
-    public void deleteFollow(User currentUser, User friend) {
-        Follow follow = followRepository.findByFromAndTo(currentUser, friend)
-                .orElseThrow(() -> new FollowNotFoundException("친구 관계가 아닙니다."));
-
-        follow.setIsBreak(true);
-        followRepository.save(follow);
-    }
-
-    public List<User> findFollow(User currentUser, String name) {
-        // 현재 사용자의 친구 목록을 가져오기. -> repository로 변경
-        List<Follow> follows = getFollow(currentUser);
-
-        // 친구 목록에서 이름이 일치하는 친구 찾기. -> 처음부터 쿼리로 찾는 것이 더 효율적.
-        List<User> friends = new ArrayList<>();
-        for (Follow follow : follows) {
-            if (follow.getTo().getName().contains(name)) {
-                friends.add(follow.getTo());
+            // 친구 목록에 있으면 isBreak가 false인지 확인.
+            if (!follow.isBreak()) {
+                throw new AlreadyFollowingException("이미 친구입니다.");
+            } else {
+                follow.updateBreak(false);
             }
+        } else {
+            // 친구 목록에 없으면 추가
+            follow = Follow.builder().from(currentUser).to(friend).isBreak(false).build();
         }
 
-        // 만약 users가 비어있다면 친구를 찾지 못한 것이므로 에러를 반환.
+        followRepository.save(follow);
+        return UserResponse.to(friend);
+    }
+
+    public UserResponse deleteFollow(User currentUser, Integer uid) {
+        // 추가할 친구가 존재하는지 확인.
+        User friend = userRepository.findById(uid).orElseThrow(() -> new UserNotFound());
+
+        // 친구 목록에 있나 확인.
+        Follow follow = followRepository.findByFromAndTo(currentUser, friend)
+                .orElseThrow(() -> new FollowNotFoundException());
+
+        follow.updateBreak(true);
+        followRepository.save(follow);
+
+        return UserResponse.to(friend);
+    }
+
+    public List<UserResponse> findFollow(User currentUser, String name) {
+
+        List<UserResponse> friends = followRepository.findFollowsByUserAndName(currentUser, name).stream()
+                .map(Follow::getTo)
+                .map(UserResponse::to).collect(Collectors.toList());
+
         if (friends.isEmpty()) {
             throw new UserNotFound();
         }
