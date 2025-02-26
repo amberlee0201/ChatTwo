@@ -73,7 +73,7 @@ public class FollowService {
 
     public List<UserResponse> findFollow(User currentUser, String name) {
 
-        List<UserResponse> friends = followRepository.findFollowsByUserAndName(currentUser, name).stream()
+        List<UserResponse> friends = followRepository.findFollowsByUserAndName(currentUser, "%" + name + "%").stream()
                 .map(Follow::getTo)
                 .map(UserResponse::to).collect(Collectors.toList());
 
