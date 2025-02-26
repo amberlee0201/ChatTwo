@@ -2,7 +2,7 @@ package com.ce.chat2.user.entity;
 
 import com.ce.chat2.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
+import com.ce.chat2.common.s3.S3FileDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -38,22 +38,31 @@ public class User extends BaseEntity {
     @Column(nullable = false, name = "user_image")
     String image;
 
+    @Column(name = "user_fileName")
+    String fileName;
+
     UserRole role;
 
-    public static User of(String providerId, String name, String image, UserRole userRole) {
+    public static User of(String providerId, String name, String image, UserRole userRole){
         return User.builder()
-                .providerId(providerId)
-                .name(name)
-                .image(image)
-                .role(userRole)
-                .build();
+            .providerId(providerId)
+            .name(name)
+            .image(image)
+            .role(userRole)
+            .build();
     }
 
     public static User of(OAuth2User loginUser) {
 
         return User.of(loginUser.getAttribute("sub"),
-                loginUser.getAttribute("name"),
-                loginUser.getAttribute("picture"),
-                UserRole.USER);
+            loginUser.getAttribute("name"),
+            loginUser.getAttribute("picture"),
+            UserRole.USER);
+    }
+
+    public void updateInfo(String username, S3FileDto dto){
+        this.name = username;
+        this.image = dto.getFilePath();
+        this.fileName = dto.getFileName();
     }
 }
