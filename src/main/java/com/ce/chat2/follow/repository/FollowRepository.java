@@ -14,12 +14,15 @@ import com.ce.chat2.user.entity.User;
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Integer> {
 
+    // 현재 친구 목록
     @Query("SELECT f FROM Follow f WHERE f.from = :from AND f.isBreak = false")
-    List<Follow> getFollowsByFrom(User from);
+    List<Follow> findFollowsByFrom(User from);
 
-    Optional<Follow> findByFromAndTo(User currentUser, User friend);
+    // 친구 추가/삭제를 위한 검색
+    Optional<Follow> findByFromAndTo(User from, User to);
 
-    @Query("SELECT f.to FROM Follow f WHERE f.from = :currentUser AND f.to.name = :name AND f.isBreak = false")
-    List<User> findFollowsByUserAndName(@Param("currentUser") User currentUser, @Param("name") String name);
+    // 친구 검색
+    @Query("SELECT f FROM Follow f WHERE f.from = :from AND f.to.name LIKE :name AND f.isBreak = false")
+    List<Follow> findFollowsByUserAndName(@Param("from") User from, @Param("name") String name);
 
 }
