@@ -30,7 +30,11 @@ public class ApiFollowController {
         private User getCurrentUser() {
                 // 현재 로그인한 사용자 정보를 가져오는 메소드
                 Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                return ((Oauth2UserDetails) principal).getUser();
+                if (principal instanceof Oauth2UserDetails) {
+                        return ((Oauth2UserDetails) principal).getUser();
+                } else {
+                        throw new IllegalStateException("Principal is not an instance of Oauth2UserDetails");
+                }
         }
 
         // 친구 목록을 가져오는 API
