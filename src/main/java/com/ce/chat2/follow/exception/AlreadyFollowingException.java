@@ -5,6 +5,6 @@ import com.ce.chat2.common.exception.ErrorCode;
 
 public class AlreadyFollowingException extends CustomBaseException {
     public AlreadyFollowingException(String message) {
-        super(ErrorCode.ALREADY_FOLLOWING);
+        super(message, ErrorCode.ALREADY_FOLLOWING);
     }
 }
