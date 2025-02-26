@@ -2,7 +2,7 @@ package com.ce.chat2.user.entity;
 
 import com.ce.chat2.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
+import com.ce.chat2.common.s3.S3FileDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
