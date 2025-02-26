@@ -1,0 +1,18 @@
+package com.ce.chat2.room.dto;
+
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateRoomRequest {
+    private List<String> userIds; // 친구 ID 리스트
+}
+
