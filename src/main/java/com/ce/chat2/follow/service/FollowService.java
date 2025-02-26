@@ -44,14 +44,15 @@ public class FollowService {
         Follow follow = followRepository.findByFromAndTo(currentUser, friend)
                 .orElseThrow(() -> new FollowNotFoundException("친구 관계가 아닙니다."));
 
-        followRepository.delete(follow);
+        follow.setIsBreak(true);
+        followRepository.save(follow);
     }
 
     public List<User> findFollow(User currentUser, String name) {
-        // 현재 사용자의 친구 목록을 가져오기.
+        // 현재 사용자의 친구 목록을 가져오기. -> repository로 변경
         List<Follow> follows = getFollow(currentUser);
 
-        // 친구 목록에서 이름이 일치하는 친구 찾기.
+        // 친구 목록에서 이름이 일치하는 친구 찾기. -> 처음부터 쿼리로 찾는 것이 더 효율적.
         List<User> friends = new ArrayList<>();
         for (Follow follow : follows) {
             if (follow.getTo().getName().contains(name)) {
