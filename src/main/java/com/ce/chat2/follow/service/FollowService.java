@@ -24,7 +24,7 @@ public class FollowService {
     private final FollowRepository followRepository;
 
     public List<Follow> getFollow(User currentUser) {
-        List<Follow> friends = new ArrayList<Follow>();
+        List<Follow> friends = new ArrayList<>();
         followRepository.getFollowsByFrom(currentUser).forEach(friends::add);
         return friends;
     }
@@ -49,11 +49,10 @@ public class FollowService {
 
     public List<User> findFollow(User currentUser, String name) {
         // 현재 사용자의 친구 목록을 가져오기.
-        List<Follow> follows = new ArrayList<Follow>();
-        followRepository.getFollowsByFrom(currentUser).forEach(follows::add);
+        List<Follow> follows = getFollow(currentUser);
 
         // 친구 목록에서 이름이 일치하는 친구 찾기.
-        List<User> friends = new ArrayList<User>();
+        List<User> friends = new ArrayList<>();
         for (Follow follow : follows) {
             if (follow.getTo().getName().contains(name)) {
                 friends.add(follow.getTo());

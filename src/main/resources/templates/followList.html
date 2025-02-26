@@ -46,9 +46,9 @@
                 <thead>
                     <tr>
                         <!-- TODO 아직 미구현된 상태 -->
-                        <th class="width-180 color-ly">내 프로필 사진</th>
-                        <th class="width-360 vertical-middle color-ly">내 이름</th>
-                        <th class="color-ly"><a class="btn btn-primary" role="button">내 프로필</a></th>
+                        <th class="width-180 color-ly">내 프로필 사진 placeholder</th>
+                        <th class="width-360 vertical-middle color-ly">내 이름 placeholder</th>
+                        <th class="color-ly"><a class="btn btn-primary" role="button">내 프로필 수정 placeholder</a></th>
                     </tr>
                 </thead>
             </table>
@@ -57,6 +57,7 @@
                 </tbody>
             </table>
             <a class="btn btn-primary" role="button" href="searchFriend">친구 검색</a>
+            <a class="btn btn-primary" role="button" href="addFriend">친구 추가</a>
         </div>
     </div>
     <script>
@@ -67,6 +68,7 @@
                 const friendsList = document.getElementById('friendsList');
                 data.forEach(friend => {
                     const tr = document.createElement('tr');
+                    tr.setAttribute('data-id', friend.to.id); // tr의 data-id 속성에 friend.to.id 값을 설정
                     console.log(friend);
                     tr.innerHTML = `
                         <td class="width-180"><img src="${friend.to.image}" class="profile-image" ></td>
@@ -83,9 +85,10 @@
                 method: 'DELETE'
             })
             .then(response => {
-                if (response.ok) {
-                    location.reload();
-                }
+                const row = document.querySelector("tr[data-id='" + id + "']");
+                    if (row) {
+                        row.remove();
+                    }
             });
         };
 
