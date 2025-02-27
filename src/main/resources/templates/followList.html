@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,20 +60,20 @@
             <a class="btn btn-primary" role="button" href="addFriend">친구 추가</a>
         </div>
     </div>
-    <script>
+    <script th:inline="javascript">
         window.onload = function() {
-            fetch('/api/friends', {})
+            fetch('/api/friends/' + [[${user.id}]], {})
             .then(response => response.json())
             .then(data => {
                 const friendsList = document.getElementById('friendsList');
                 data.forEach(friend => {
                     const tr = document.createElement('tr');
-                    tr.setAttribute('data-id', friend.to.id); // tr의 data-id 속성에 friend.to.id 값을 설정
+                    tr.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.to.id 값을 설정
                     console.log(friend);
                     tr.innerHTML = `
-                        <td class="width-180"><img src="${friend.to.image}" class="profile-image" ></td>
-                        <td class="width-360 vertical-middle">${friend.to.name}</td>
-                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${friend.to.id})">언팔로우</a></td>
+                        <td class="width-180"><img src="${friend.image}" class="profile-image" ></td>
+                        <td class="width-360 vertical-middle">${friend.name}</td>
+                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${friend.id})">언팔로우</a></td>
                     `;
                     friendsList.appendChild(tr);
                 });
