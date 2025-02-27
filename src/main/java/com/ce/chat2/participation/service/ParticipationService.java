@@ -4,7 +4,6 @@ import com.ce.chat2.participation.entity.Participation;
 import com.ce.chat2.participation.repository.ParticipationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

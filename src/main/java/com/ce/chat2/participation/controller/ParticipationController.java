@@ -2,6 +2,7 @@ package com.ce.chat2.participation.controller;
 
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
 import com.ce.chat2.participation.service.ParticipationService;
+import com.ce.chat2.user.exception.USER_NOT_FOUND;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -20,16 +21,17 @@ public class ParticipationController {
     private final ParticipationService participationService;
 
     // 존 채팅방 목록 요청 (처음 화면 로딩 시 최초 1회)
-    @MessageMapping("/rooms/init/{userId}")
+    @MessageMapping("/rooms/init")
     @SendTo("/topic/user/{userId}")
-    public List<String> sendMessage(@DestinationVariable String userId,
-                                    Authentication authentication) {
+    public List<String> sendMessage(Authentication authentication) {
 
         if (authentication.getPrincipal() instanceof Oauth2UserDetails userDetails) {
-            log.info("sendMessage: userId={}, userDetails={}", userId, userDetails.getUser().getId());
+            userDetails = (Oauth2UserDetails) authentication.getPrincipal();
+            String userId = String.valueOf(userDetails.getUser().getId());
+            return participationService.sendInitialRooms(userId);
+        } else {
+            // @TODO
+            throw new ClassCastException("authentication.getPrincipal() is not instanceof " + Oauth2UserDetails.class.getSimpleName());
         }
-        // @TODO 서버에서 최신순으로 정렬 후 초기전송?
-        return participationService.sendInitialRooms(userId);
     }
-
 }

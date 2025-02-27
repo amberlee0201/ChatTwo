@@ -54,7 +54,7 @@ public class RoomService {
      * 2. SQS를 활용한 비동기 재처리
      *    실패 시 DynamoDB에 직접 다시 쓰는 것이 아니라, SQS에 메시지를 보내고 백그라운드에서 재시도하는 방식도 가능
      * */
-    public void createNewRoom(String creatorId, List<String> userIds) {
+    public Room createNewRoom(String creatorId, List<String> userIds) {
         // 1. uuid 생성, latestMessage 생성
         UUID uuid = UUID.randomUUID();
         String roomId = uuid.toString();
@@ -91,6 +91,8 @@ public class RoomService {
         // 4. event 각각의 유저들에게 publish
         String prefix = "/topic/user/";
         userIds.forEach(id -> simpMessageSendingOperations.convertAndSend(prefix + id, Collections.singletonList(roomId)));
+
+        return newRoom;
     }
 
     public void exitRoom(String userId, String roomId) {

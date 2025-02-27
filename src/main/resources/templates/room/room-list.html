@@ -185,8 +185,16 @@
                     if (!chatRoomSubscriptions[roomId]) {
                         chatRoomSubscriptions[roomId] = stompClient.subscribe(`/topic/room/${roomId}`, function (messageOutput) {
                             const roomInfo = JSON.parse(messageOutput.body);
+
                             addOrUpdateChatRoom(roomInfo);
                             console.log("채팅방 업데이트:", roomInfo);
+
+                            // 채팅방 목록에 추가 (중복 방지)
+                            if (!chatRooms.some(room => room.roomId === roomInfo.roomId)) {
+                                chatRooms.push(roomInfo);
+                                renderChatList();
+                            }
+
                         });
                         console.log(`Subscribed to chat room: ${roomId}`);
                     }
@@ -297,47 +305,75 @@
 
         // 채팅방 생성 요청
         confirmBtn.addEventListener("click", function () {
-            const selectedFriends = Array.from(friendList.querySelectorAll("input:checked")).map(input => Number(input.value));
+            const selectedFriends = Array.from(friendList.querySelectorAll("input:checked")).map(input => input.value);
             if (selectedFriends.length === 0) {
                 alert("최소 한 명 이상 선택하세요.");
                 return;
             }
 
             // 서버에 채팅방 생성 요청 (WebSocket 전송)
-            const payload = { userIds: selectedFriends };
-            stompClient.send(`/app/rooms/create/${userId}`, {}, JSON.stringify(payload));
+            // const payload = { userIds: selectedFriends };
+            // stompClient.send(`/app/rooms/create/${userId}`, {}, JSON.stringify(payload));
+
+            createChatRoom(selectedFriends);
 
             // 모달 닫기
             document.getElementById("friendModal").querySelector(".btn-close").click();
         });
 
-        // 채팅방에서 나가기
-        window.exitChatRoom = function (roomId) {
+        async function createChatRoom(invited) {
+            const response = await fetch('/api/rooms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(invited)
+            });
+
+            if (response.ok) {
+                const newRoom = await response.json();
+                console.log("채팅방 생성 완료:", newRoom.toString());
+                // 채팅방 목록에 추가
+                chatRooms.push(newRoom);
+
+                // UI 갱신
+                renderChatList();
+            } else {
+                alert("채팅방 생성에 실패했습니다.");
+            }
+        }
+
+        // 채팅방 나가기
+        window.exitChatRoom = async function (roomId) {
             const room = chatRooms.find(room => room.roomId === roomId);
             if (!room) return;
 
             // 🔥 삭제 확인 창 띄우기
             const isConfirmed = window.confirm(`"${room.roomName}" 채팅방에서 나가시겠습니까?`);
+            if (!isConfirmed) return;
 
-            if (!isConfirmed) {
-                console.log("나가기 취소");
-                return;
+            try {
+                const response = await fetch(`/api/rooms/${roomId}`, { method: 'DELETE' });
+
+                if (response.ok) {
+                    console.log(`✅ "${room.roomName}" 채팅방에서 퇴장 완료: ${roomId}`);
+
+                    // UI에서 채팅방 제거
+                    chatRooms = chatRooms.filter(r => r.roomId !== roomId);
+                    renderChatList();
+
+                    // WebSocket 구독 해제
+                    if (chatRoomSubscriptions[roomId]) {
+                        chatRoomSubscriptions[roomId].unsubscribe();
+                        delete chatRoomSubscriptions[roomId];
+                    }
+                } else {
+                    alert("채팅방에서 나가기 실패했습니다.");
+                }
+            } catch (error) {
+                console.error("채팅방 나가기 오류:", error);
+                alert("채팅방에서 나가는 중 오류가 발생했습니다.");
             }
-
-            // 삭제 로직 실행
-            stompClient.send("/app/rooms/exit", {}, JSON.stringify({"userId": userId, "roomId": roomId}));
-            chatRooms = chatRooms.filter(room => room.roomId !== roomId); // 배열에서 삭제
-            renderChatList(); // UI 업데이트
-
-            // 구독 해제
-            if (chatRoomSubscriptions[roomId]) {
-                chatRoomSubscriptions[roomId].unsubscribe();
-                delete chatRoomSubscriptions[roomId];
-                console.log(`Unsubscribed from deleted chat room: ${roomId}`);
-            }
-
-            console.log(`"${room.roomName}" 채팅방에서 퇴장.`);
         }
+
     });
 
 </script>
