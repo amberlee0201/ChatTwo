@@ -19,7 +19,7 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final ParticipationRepository participationRepository;
 
-    public List<String> sendInitialRooms(String userId) {
+    public List<String> sendInitialRooms(Integer userId) {
         List<String> roomList = participationRepository.findAllRoomsByUserId(userId)
                 .stream()
                 .map(Participation::getRoomId)
@@ -37,7 +37,7 @@ public class RoomService {
      * 2. SQS를 활용한 비동기 재처리
      *    실패 시 DynamoDB에 직접 다시 쓰는 것이 아니라, SQS에 메시지를 보내고 백그라운드에서 재시도하는 방식도 가능
      */
-    public Room createNewRoom(String creatorId, List<String> allMembersId) {
+    public Room createNewRoom(Integer creatorId, List<Integer> allMembersId) {
         // 1. uuid 생성, latestMessage 생성
         UUID uuid = UUID.randomUUID();
         String roomId = uuid.toString();
@@ -73,7 +73,7 @@ public class RoomService {
         return newRoom;
     }
 
-    public void exitRoom(String userId, String roomId) {
+    public void exitRoom(Integer userId, String roomId) {
         // delete user to room relation
         Participation userToExit = Participation.builder().userId(userId).roomId(roomId).build();
         participationRepository.delete(userToExit);

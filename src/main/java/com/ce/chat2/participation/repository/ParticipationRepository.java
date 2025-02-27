@@ -21,14 +21,13 @@ public class ParticipationRepository {
     private final DynamoDbEnhancedClient enhancedClient;
 
     public ParticipationRepository(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-                                   @Value("${aws.dynamodb.table-name.participation}") String participationTableName) {
+                                   @Value("${cloud.aws.dynamodb.table-name.participation}") String participationTableName) {
         this.enhancedClient = dynamoDbEnhancedClient;
         this.participationTable = enhancedClient.table(participationTableName,
                 TableSchema.fromBean(Participation.class));
     }
 
-    public List<Participation> findAllRoomsByUserId(String userId) {
-        log.info(userId);
+    public List<Participation> findAllRoomsByUserId(Integer userId) {
         return participationTable.query(QueryConditional.keyEqualTo(key -> key.partitionValue(userId).build()))
                 .items().stream().toList();
     }

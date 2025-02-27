@@ -15,7 +15,7 @@ public class RoomRepository {
     private final DynamoDbTable<Room> roomTable;
 
     public RoomRepository(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-                          @Value("${aws.dynamodb.table-name.chat-room}") String chatRoomTableName) {
+                          @Value("${cloud.aws.dynamodb.table-name.chat-room}") String chatRoomTableName) {
         this.roomTable = dynamoDbEnhancedClient.table(chatRoomTableName, TableSchema.fromBean(Room.class));
     }
 

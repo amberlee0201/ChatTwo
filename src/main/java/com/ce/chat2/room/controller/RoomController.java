@@ -43,7 +43,7 @@ public class RoomController {
 
         if (authentication.getPrincipal() instanceof Oauth2UserDetails userDetails) {
             userDetails = (Oauth2UserDetails) authentication.getPrincipal();
-            String userId = String.valueOf(userDetails.getUser().getId());
+            Integer userId = userDetails.getUser().getId();
             RoomListResponse response = RoomListResponse.builder()
                     .rooms(roomService.sendInitialRooms(userId))
                     .build();
@@ -57,11 +57,11 @@ public class RoomController {
     // 채팅방 신규 생성
     @PostMapping("/api/rooms")
     public ResponseEntity<RoomCreateResponse> createChatRoom(@RequestBody RoomCreateRequest request, @AuthenticationPrincipal Oauth2UserDetails user) {
-        List<String> invitedIds = request.getInvitedIds();
-        String creatorId = String.valueOf(user.getUser().getId());
+        List<Integer> invitedIds = request.getInvitedIds();
+        Integer creatorId = user.getUser().getId();
         log.info("invited {} users, creatorId: {}", invitedIds.size(), creatorId);
 
-        List<String> allMembersId = Stream.concat(invitedIds.stream(), Stream.of(creatorId)).toList();
+        List<Integer> allMembersId = Stream.concat(invitedIds.stream(), Stream.of(creatorId)).toList();
         Room newRoom = roomService.createNewRoom(creatorId, allMembersId);
 
         // send websocket msg async
@@ -77,7 +77,7 @@ public class RoomController {
     @DeleteMapping("/api/rooms/{roomId}")
     public ResponseEntity<Void> deleteChatRoom(@PathVariable String roomId, @AuthenticationPrincipal Oauth2UserDetails user) {
         log.info("roomId: {}, userId: {}", roomId, user.getUser().getId());
-        roomService.exitRoom(String.valueOf(user.getUser().getId()), roomId);
+        roomService.exitRoom(user.getUser().getId(), roomId);
 
         return ResponseEntity.ok().build();
     }

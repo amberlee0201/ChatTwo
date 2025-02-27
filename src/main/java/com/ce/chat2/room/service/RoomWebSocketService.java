@@ -45,7 +45,7 @@ public class RoomWebSocketService {
     }
 
     @Async
-    public void notifyUsersAboutNewRoom(List<String> userIds, String roomId) {
+    public void notifyUsersAboutNewRoom(List<Integer> userIds, String roomId) {
         String prefix = "/topic/user/";
         RoomListResponse listResponse = RoomListResponse.builder()
                 .rooms(List.of(roomId))

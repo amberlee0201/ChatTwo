@@ -6,5 +6,5 @@ import java.util.List;
 
 @Data
 public class RoomCreateRequest {
-    private List<String> invitedIds;
+    private List<Integer> invitedIds;
 }
