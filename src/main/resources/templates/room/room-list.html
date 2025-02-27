@@ -144,7 +144,9 @@
             </div>
             <div class="modal-footer" style="background-color: #FFC436;">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <button type="button" class="btn btn-primary" id="confirm-create-room" style="background-color: #0C356A;">확인</button>
+                <button type="button" class="btn btn-primary" id="confirm-create-room"
+                        style="background-color: #0C356A;">확인
+                </button>
             </div>
         </div>
     </div>
@@ -178,7 +180,8 @@
 
             // 채팅방 목록 미리보기(사용자 개인별) 구독
             stompClient.subscribe(`/topic/user/${userId}`, function (messageOutput) {
-                const chatRoomIds = JSON.parse(messageOutput.body);
+                const response = JSON.parse(messageOutput.body);
+                const chatRoomIds = response.rooms;
 
                 // 새 채팅방 구독 추가
                 chatRoomIds.forEach(roomId => {
@@ -261,7 +264,7 @@
                         <div class="last-message">${room.latestMessage}</div>
                     </div>
                 </div>
-                <div class="timestamp">${room.latestTimestamp}</div>
+                <div class="timestamp">${formatChatTimestamp(room.latestTimestamp)}</div>
                 <button class="delete-btn" onclick="exitChatRoom('${room.roomId}')">나가기</button>
             `;
                 chatList.appendChild(li);
@@ -275,11 +278,11 @@
 
         // Dummy 친구 목록 (id, 이름)
         const friends = [
-            { id: 2, name: "Alice" },
-            { id: 3, name: "Bob" },
-            { id: 4, name: "Charlie" },
-            { id: 5, name: "David" },
-            { id: 6, name: "Eve" }
+            {id: 2, name: "Alice"},
+            {id: 3, name: "Bob"},
+            {id: 4, name: "Charlie"},
+            {id: 5, name: "David"},
+            {id: 6, name: "Eve"}
         ];
 
         // 친구 목록 UI 생성
@@ -312,9 +315,6 @@
             }
 
             // 서버에 채팅방 생성 요청 (WebSocket 전송)
-            // const payload = { userIds: selectedFriends };
-            // stompClient.send(`/app/rooms/create/${userId}`, {}, JSON.stringify(payload));
-
             createChatRoom(selectedFriends);
 
             // 모달 닫기
@@ -324,16 +324,16 @@
         async function createChatRoom(invited) {
             const response = await fetch('/api/rooms', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(invited)
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({invitedIds: invited})
             });
 
             if (response.ok) {
                 const newRoom = await response.json();
-                console.log("채팅방 생성 완료:", newRoom.toString());
+                const newRoomId = newRoom.roomId;
+                console.log("채팅방 생성 완료:", newRoomId);
                 // 채팅방 목록에 추가
-                chatRooms.push(newRoom);
-
+                // chatRooms.push(newRoomId);
                 // UI 갱신
                 renderChatList();
             } else {
@@ -351,7 +351,7 @@
             if (!isConfirmed) return;
 
             try {
-                const response = await fetch(`/api/rooms/${roomId}`, { method: 'DELETE' });
+                const response = await fetch(`/api/rooms/${roomId}`, {method: 'DELETE'});
 
                 if (response.ok) {
                     console.log(`✅ "${room.roomName}" 채팅방에서 퇴장 완료: ${roomId}`);
@@ -377,5 +377,6 @@
     });
 
 </script>
+<script src="/js/common.js" ></script>
 </body>
 </html>
