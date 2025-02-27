@@ -47,7 +47,7 @@ public class RoomController {
             RoomListResponse response = RoomListResponse.builder()
                     .rooms(roomService.sendInitialRooms(userId))
                     .build();
-            messagingTemplate.convertAndSend("/topic/user/" + userId, response);
+            messagingTemplate.convertAndSend("/room-sub/user/" + userId, response);
         } else {
             // @TODO
             throw new ClassCastException("authentication.getPrincipal() is not instanceof " + Oauth2UserDetails.class.getSimpleName());

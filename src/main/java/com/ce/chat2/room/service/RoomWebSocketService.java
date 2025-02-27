@@ -28,7 +28,7 @@ public class RoomWebSocketService {
     public void handleSubscriptionEvent(SessionSubscribeEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String destination = headerAccessor.getDestination(); // 구독한 토픽 주소
-        String prefix = "/topic/room/";
+        String prefix = "/room-sub/room/";
         log.info("SessionSubscribeEvent - destination = {}", destination);
 
         if (destination != null && destination.startsWith(prefix)) {
@@ -48,7 +48,7 @@ public class RoomWebSocketService {
 
     @Async
     public void notifyUsersAboutNewRoom(List<Integer> userIds, String roomId) {
-        String prefix = "/topic/user/";
+        String prefix = "/room-sub/user/";
         RoomListResponse listResponse = RoomListResponse.builder()
                 .rooms(List.of(roomId))
                 .build();

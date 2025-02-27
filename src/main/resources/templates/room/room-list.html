@@ -128,7 +128,7 @@
     <button class="nav-btn">친구목록</button>
     <button class="nav-btn active">채팅방</button>
     <button class="nav-btn">기타</button>
-    <button class="nav-btn">내 프로필</button>
+    <button class="nav-btn" th:onclick="'location.href=\'/users/' + ${user.id} + '\''">내 프로필</button>
 </div>
 
 <!-- Bootstrap 모달 -->
@@ -176,17 +176,17 @@
             console.log("WebSocket 연결 성공");
 
             // 기존 채팅방 목록 요청 (초기 화면 로딩 시)
-            stompClient.send('/app/rooms/init', {}, {});
+            stompClient.send('/room-pub/rooms/init', {}, {});
 
             // 채팅방 목록 미리보기(사용자 개인별) 구독
-            stompClient.subscribe(`/topic/user/${userId}`, function (messageOutput) {
+            stompClient.subscribe(`/room-sub/user/${userId}`, function (messageOutput) {
                 const response = JSON.parse(messageOutput.body);
                 const chatRoomIds = response.rooms;
 
                 // 새 채팅방 구독 추가
                 chatRoomIds.forEach(roomId => {
                     if (!chatRoomSubscriptions[roomId]) {
-                        chatRoomSubscriptions[roomId] = stompClient.subscribe(`/topic/room/${roomId}`, function (messageOutput) {
+                        chatRoomSubscriptions[roomId] = stompClient.subscribe(`/room-sub/room/${roomId}`, function (messageOutput) {
                             const roomInfo = JSON.parse(messageOutput.body);
 
                             addOrUpdateChatRoom(roomInfo);
