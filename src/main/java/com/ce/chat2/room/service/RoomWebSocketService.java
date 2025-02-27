@@ -2,6 +2,7 @@ package com.ce.chat2.room.service;
 
 
 import com.ce.chat2.room.dto.RoomListResponse;
+import com.ce.chat2.room.dto.RoomResponse;
 import com.ce.chat2.room.entity.Room;
 import com.ce.chat2.room.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,9 @@ public class RoomWebSocketService {
 
             if (room != null) {
                 // 채팅방 정보 전송
-                messagingTemplate.convertAndSend(destination, room);
-                log.info("Subscribed to room {}. Sent room info: {}", roomId, room);
+                RoomResponse response = RoomResponse.of(room);
+                messagingTemplate.convertAndSend(destination, response);
+                log.info("Subscribed to room {}. Sent room info: {}", roomId, response);
             }
         }
     }
