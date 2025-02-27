@@ -1,7 +1,6 @@
 package com.ce.chat2.user.entity;
 
 import com.ce.chat2.common.entity.BaseEntity;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import com.ce.chat2.common.s3.S3FileDto;
 import jakarta.persistence.Column;
@@ -21,8 +20,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" }) // 엔티티를 JSON으로 변환할 때 발생하는 InvalidDefinitionException:
-                                                                 // No serializer found 오류를 피하기 위해 추가
 public class User extends BaseEntity {
 
     @Id
