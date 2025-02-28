@@ -30,7 +30,7 @@ public class RoomController {
     private final RoomWebSocketService roomWebSocketService;
     private final SimpMessageSendingOperations messagingTemplate;
 
-    @GetMapping("/room")
+    @GetMapping("/rooms")
     public String room(@AuthenticationPrincipal Oauth2UserDetails oAuth2User,
                        Model model) {
         model.addAttribute("user", oAuth2User.getUser());

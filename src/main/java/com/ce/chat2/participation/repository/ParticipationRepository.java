@@ -5,26 +5,34 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Repository
 public class ParticipationRepository {
 
-    private final DynamoDbTable<Participation> participationTable;
+
     private final DynamoDbEnhancedClient enhancedClient;
 
+    private final DynamoDbTable<Participation> participationTable;
+    private final DynamoDbIndex<Participation> participationGsi;
+
     public ParticipationRepository(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-                                   @Value("${cloud.aws.dynamodb.table-name.participation}") String participationTableName) {
+                                   @Value("${cloud.aws.dynamodb.table-name.participation}") String participationTableName,
+                                   @Value("${cloud.aws.dynamodb.index.participation-gsi}") String participationGsi) {
         this.enhancedClient = dynamoDbEnhancedClient;
         this.participationTable = enhancedClient.table(participationTableName,
                 TableSchema.fromBean(Participation.class));
+        this.participationGsi = participationTable.index(participationGsi);
     }
 
     public List<Participation> findAllRoomsByUserId(Integer userId) {
@@ -59,5 +67,16 @@ public class ParticipationRepository {
 
     public void delete(Participation participation) {
         participationTable.deleteItem(participation);
+    }
+
+    public Set<Integer> findUserIdsByRoomId(String roomId) {
+
+        Set<Integer> userIds = new HashSet<>();
+        participationGsi.query(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId).build()))
+                .stream().forEach(page -> page.items()
+                .forEach(p -> {
+                    userIds.add(p.getUserId());
+                }));
+        return userIds;
     }
 }
