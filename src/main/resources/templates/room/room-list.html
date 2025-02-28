@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>내 채팅방</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
@@ -125,7 +126,7 @@
 </div>
 
 <div class="nav-bar">
-    <button class="nav-btn">친구목록</button>
+    <a class="btn nav-btn" role="button" href="friends">친구 목록</a>
     <button class="nav-btn active">채팅방</button>
     <button class="nav-btn">기타</button>
     <button class="nav-btn" th:onclick="'location.href=\'/users/' + ${user.id} + '\''">내 프로필</button>
