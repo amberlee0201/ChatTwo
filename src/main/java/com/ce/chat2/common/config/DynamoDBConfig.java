@@ -15,10 +15,10 @@ public class DynamoDBConfig {
     @Value("${cloud.aws.region.static}")
     private String region;
 
-    @Value("${aws.dynamodb.access-key}")
+    @Value("${cloud.aws.credentials.access-key}")
     private String accessKey;
 
-    @Value("${aws.dynamodb.secret-key}")
+    @Value("${cloud.aws.credentials.secret-key}")
     private String secretKey;
 
     @Bean

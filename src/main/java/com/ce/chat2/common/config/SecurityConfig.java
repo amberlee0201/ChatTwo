@@ -27,7 +27,7 @@ public class SecurityConfig {
             .formLogin(AbstractHttpConfigurer::disable)
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/") // 비로그인시 이동할 page 설정 (== login page)
-                .defaultSuccessUrl("/chats") //login인 성공 후 이동 경로
+                .defaultSuccessUrl("/rooms") //login인 성공 후 이동 경로
                 .userInfoEndpoint(userInfo -> userInfo // login 후 후처리
                     .userService(oAuth2UserService)
                 )
