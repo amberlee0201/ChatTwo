@@ -79,7 +79,7 @@ public class RoomController {
     // 채팅방 퇴장
     @DeleteMapping("/api/rooms/{roomId}")
     public ResponseEntity<Void> exitChatRoom(@PathVariable String roomId, @AuthenticationPrincipal Oauth2UserDetails user) {
-        log.info("roomId: {}, userId: {}", roomId, user.getUser().getId());
+        log.info("exit roomId: {}, userId: {}", roomId, user.getUser().getId());
         roomService.exitRoom(user.getUser().getId(), roomId);
 
         return ResponseEntity.ok().build();
