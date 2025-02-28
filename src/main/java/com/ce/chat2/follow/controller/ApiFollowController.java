@@ -4,7 +4,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
 import com.ce.chat2.follow.service.FollowService;
-import com.ce.chat2.user.dto.UserResponse;
+import com.ce.chat2.user.dto.UserFindResponse;
+import com.ce.chat2.user.dto.UserListResponse;
 import com.ce.chat2.user.exception.UnAuthorizedUser;
 
 import lombok.RequiredArgsConstructor;
@@ -24,38 +25,41 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ApiFollowController {
         private final FollowService followService;
 
-        // 친구 목록을 가져오는 API - dto 반환하도록 변경할 것.
+        // 친구 목록을 가져오는 API
         @GetMapping("/api/friends/{uid}")
-        public ResponseEntity<List<UserResponse>> getFollow(@PathVariable("uid") Integer uid,
+        public ResponseEntity<List<UserListResponse>> getFollow(@PathVariable("uid") Integer uid,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
                 // uid와 userDetails의 uid가 일치하는지 확인
                 if (uid != userDetails.getUser().getId()) {
                         throw new UnAuthorizedUser();
                 }
+                System.out.println("친구 목록 가져오기");
                 return ResponseEntity.ok(followService.getFollow(userDetails.getUser()));
         }
 
-        // 친구 추가 API - dto 반환하도록 변경할 것.
+        // 친구 추가 API
         @PostMapping("/api/friends/{uid}")
-        public ResponseEntity<UserResponse> setFollow(@PathVariable("uid") Integer uid,
+        public ResponseEntity<String> setFollow(@PathVariable("uid") Integer uid,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
-
-                return ResponseEntity.ok(followService.setFollow(userDetails.getUser(), uid));
+                System.out.println("친구 추가");
+                followService.setFollow(userDetails.getUser(), uid);
+                return ResponseEntity.ok("친구 추가 성공");
         }
 
-        // 친구 삭제 API - dto 반환하도록 변경할 것.
+        // 친구 삭제 API
         @DeleteMapping("/api/friends/{uid}")
-        public ResponseEntity<UserResponse> deleteFollow(@PathVariable("uid") Integer uid,
+        public ResponseEntity<String> deleteFollow(@PathVariable("uid") Integer uid,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
-
-                return ResponseEntity.ok(followService.deleteFollow(userDetails.getUser(), uid));
+                System.out.println("친구 삭제");
+                followService.deleteFollow(userDetails.getUser(), uid);
+                return ResponseEntity.ok("친구 삭제 성공");
         }
 
-        // 친구 찾기 API - dto 반환하도록 변경할 것.
+        // 친구 찾기 API
         @GetMapping("/api/friends/find")
-        public ResponseEntity<List<UserResponse>> findFollow(@RequestParam("name") String name,
+        public ResponseEntity<List<UserFindResponse>> findFollow(@RequestParam("name") String name,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
-
+                System.out.println("친구 찾기");
                 return ResponseEntity.ok(followService.findFollow(userDetails.getUser(), name));
         }
 

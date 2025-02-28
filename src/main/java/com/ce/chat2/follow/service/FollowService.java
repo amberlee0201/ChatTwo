@@ -10,7 +10,8 @@ import com.ce.chat2.follow.entity.Follow;
 import com.ce.chat2.follow.exception.AlreadyFollowingException;
 import com.ce.chat2.follow.exception.FollowNotFoundException;
 import com.ce.chat2.follow.repository.FollowRepository;
-import com.ce.chat2.user.dto.UserResponse;
+import com.ce.chat2.user.dto.UserFindResponse;
+import com.ce.chat2.user.dto.UserListResponse;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.exception.UserNotFound;
 import com.ce.chat2.user.repository.UserRepository;
@@ -26,19 +27,19 @@ public class FollowService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
 
-    public List<UserResponse> getFollow(User currentUser) {
+    public List<UserListResponse> getFollow(User currentUser) {
 
-        return followRepository.findByFrom(currentUser).stream().map(Follow::getTo)
-                .map(UserResponse::to).collect(Collectors.toList());
+        return userRepository.findByFrom(currentUser).stream().map(Follow::getTo)
+                .map(UserListResponse::to).collect(Collectors.toList());
     }
 
-    public UserResponse setFollow(User currentUser, Integer uid) {
+    public void setFollow(User currentUser, Integer uid) {
 
         // 추가할 친구가 존재하는지 확인.
         User friend = userRepository.findById(uid).orElseThrow(() -> new UserNotFound());
 
         // 친구 목록에 있나 확인.
-        Follow follow = followRepository.findByFromAndTo(currentUser, friend).orElse(null);
+        Follow follow = userRepository.findByFromAndTo(currentUser, friend).orElse(null);
 
         if (follow != null && !follow.isBreak()) {
             // 친구 목록에 있으며 isBreak가 false이면
@@ -52,28 +53,25 @@ public class FollowService {
         }
 
         followRepository.save(follow);
-        return UserResponse.to(friend);
     }
 
-    public UserResponse deleteFollow(User currentUser, Integer uid) {
+    public void deleteFollow(User currentUser, Integer uid) {
         // 추가할 친구가 존재하는지 확인.
         User friend = userRepository.findById(uid).orElseThrow(() -> new UserNotFound());
 
         // 친구 목록에 있나 확인.
-        Follow follow = followRepository.findByFromAndTo(currentUser, friend)
+        Follow follow = userRepository.findByFromAndTo(currentUser, friend)
                 .orElseThrow(() -> new FollowNotFoundException());
 
         follow.updateBreak(true);
         followRepository.save(follow);
-
-        return UserResponse.to(friend);
     }
 
-    public List<UserResponse> findFollow(User currentUser, String name) {
+    public List<UserFindResponse> findFollow(User currentUser, String name) {
 
-        List<UserResponse> friends = followRepository.findByFromAndName(currentUser, "%" + name + "%").stream()
+        List<UserFindResponse> friends = userRepository.findByFromAndName(currentUser, "%" + name + "%").stream()
                 .map(Follow::getTo)
-                .map(UserResponse::to).collect(Collectors.toList());
+                .map(UserFindResponse::to).collect(Collectors.toList());
 
         if (friends.isEmpty()) {
             throw new UserNotFound();
