@@ -3,6 +3,7 @@ package com.ce.chat2.follow.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
+import com.ce.chat2.follow.dto.ResponseData;
 import com.ce.chat2.follow.service.FollowService;
 import com.ce.chat2.user.dto.UserFindResponse;
 import com.ce.chat2.user.dto.UserListResponse;
@@ -39,20 +40,20 @@ public class ApiFollowController {
 
         // 친구 추가 API
         @PostMapping("/api/friends/{uid}")
-        public ResponseEntity<String> setFollow(@PathVariable("uid") Integer uid,
+        public ResponseEntity<ResponseData> setFollow(@PathVariable("uid") Integer uid,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
                 System.out.println("친구 추가");
                 followService.setFollow(userDetails.getUser(), uid);
-                return ResponseEntity.ok("친구 추가 성공");
+                return ResponseEntity.ok(ResponseData.SUCCESS_RESPONSE);
         }
 
         // 친구 삭제 API
         @DeleteMapping("/api/friends/{uid}")
-        public ResponseEntity<String> deleteFollow(@PathVariable("uid") Integer uid,
+        public ResponseEntity<ResponseData> deleteFollow(@PathVariable("uid") Integer uid,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
                 System.out.println("친구 삭제");
                 followService.deleteFollow(userDetails.getUser(), uid);
-                return ResponseEntity.ok("친구 삭제 성공");
+                return ResponseEntity.ok(ResponseData.SUCCESS_RESPONSE);
         }
 
         // 친구 찾기 API
