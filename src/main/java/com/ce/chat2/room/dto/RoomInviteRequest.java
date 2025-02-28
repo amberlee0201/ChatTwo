@@ -5,6 +5,6 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class RoomCreateRequest {
+public class RoomInviteRequest {
     private List<Integer> invitedIds;
 }

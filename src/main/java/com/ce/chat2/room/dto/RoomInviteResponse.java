@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 @Builder
-public class RoomCreateResponse {
+public class RoomInviteResponse {
     private String roomId;
 }

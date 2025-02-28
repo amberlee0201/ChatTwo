@@ -4,6 +4,9 @@ import com.ce.chat2.participation.entity.Participation;
 import com.ce.chat2.participation.repository.ParticipationRepository;
 import com.ce.chat2.room.entity.Room;
 import com.ce.chat2.room.repository.RoomRepository;
+import com.ce.chat2.user.dto.UserListResponse;
+import com.ce.chat2.user.entity.User;
+import com.ce.chat2.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,7 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final ParticipationRepository participationRepository;
+    private final UserRepository userRepository;
 
     public List<String> sendInitialRooms(Integer userId) {
         List<String> roomList = participationRepository.findAllRoomsByUserId(userId)
@@ -37,11 +41,12 @@ public class RoomService {
      * 2. SQS를 활용한 비동기 재처리
      *    실패 시 DynamoDB에 직접 다시 쓰는 것이 아니라, SQS에 메시지를 보내고 백그라운드에서 재시도하는 방식도 가능
      */
-    public Room createNewRoom(Integer creatorId, List<Integer> allMembersId) {
+    public Room createNewRoom(User creator, List<Integer> allMembersId) {
         // 1. uuid 생성, latestMessage 생성
         UUID uuid = UUID.randomUUID();
+        Integer creatorId = creator.getId();
         String roomId = uuid.toString();
-        String roomName = creatorId + " 님의 채팅방"; // @TODO username
+        String roomName = creator.getName() + " 님의 채팅방";
         String latestMessage = "[System] 새로운 채팅방이 생성되었습니다.";
         Instant now = Instant.now();
 
@@ -63,7 +68,8 @@ public class RoomService {
                         Participation.builder()
                                 .roomId(roomId)
                                 .userId(id)
-                                .createdAt(now)
+                                .invitedAt(now)
+                                .invitedBy(creatorId)
                                 .build())
                 .toList();
 
@@ -78,4 +84,33 @@ public class RoomService {
         Participation userToExit = Participation.builder().userId(userId).roomId(roomId).build();
         participationRepository.delete(userToExit);
     }
+
+    public List<UserListResponse> getFriendsListNotInChatRoom(User user, String roomId) {
+
+        Set<Integer> members = participationRepository.findUserIdsByRoomId(roomId);
+
+        return userRepository.findByFrom(user)
+                .stream()
+                .filter(f -> !members.contains(f.getId()))
+                .map(UserListResponse::to)
+                .toList();
+    }
+
+    public void addMembers(String roomId, User inviter, List<Integer> invitedIds){
+
+        Instant now = Instant.now();
+        Integer inviterId = inviter.getId();
+
+        List<Participation> newParticipations = invitedIds.stream().map(id ->
+                        Participation.builder()
+                                .roomId(roomId)
+                                .userId(id)
+                                .invitedAt(now)
+                                .invitedBy(inviterId)
+                                .build())
+                .toList();
+
+        participationRepository.batchSave(newParticipations);
+    }
+
 }

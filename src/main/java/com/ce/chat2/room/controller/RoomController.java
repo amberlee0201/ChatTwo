@@ -1,12 +1,14 @@
 package com.ce.chat2.room.controller;
 
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
-import com.ce.chat2.room.dto.RoomCreateRequest;
+import com.ce.chat2.room.dto.RoomInviteRequest;
 import com.ce.chat2.room.dto.RoomListResponse;
-import com.ce.chat2.room.dto.RoomCreateResponse;
+import com.ce.chat2.room.dto.RoomInviteResponse;
 import com.ce.chat2.room.entity.Room;
 import com.ce.chat2.room.service.RoomService;
 import com.ce.chat2.room.service.RoomWebSocketService;
+import com.ce.chat2.user.dto.UserListResponse;
+import com.ce.chat2.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -56,18 +58,19 @@ public class RoomController {
 
     // 채팅방 신규 생성
     @PostMapping("/api/rooms")
-    public ResponseEntity<RoomCreateResponse> createChatRoom(@RequestBody RoomCreateRequest request, @AuthenticationPrincipal Oauth2UserDetails user) {
+    public ResponseEntity<RoomInviteResponse> createChatRoom(@RequestBody RoomInviteRequest request, @AuthenticationPrincipal Oauth2UserDetails user) {
         List<Integer> invitedIds = request.getInvitedIds();
-        Integer creatorId = user.getUser().getId();
+        User creator = user.getUser();
+        Integer creatorId = creator.getId();
         log.info("invited {} users, creatorId: {}", invitedIds.size(), creatorId);
 
         List<Integer> allMembersId = Stream.concat(invitedIds.stream(), Stream.of(creatorId)).toList();
-        Room newRoom = roomService.createNewRoom(creatorId, allMembersId);
+        Room newRoom = roomService.createNewRoom(creator, allMembersId);
 
         // send websocket msg async
         roomWebSocketService.notifyUsersAboutNewRoom(allMembersId, newRoom.getRoomId());
 
-        RoomCreateResponse createResponse = RoomCreateResponse.builder()
+        RoomInviteResponse createResponse = RoomInviteResponse.builder()
                 .roomId(newRoom.getRoomId())
                 .build();
         return ResponseEntity.ok(createResponse);
@@ -75,10 +78,30 @@ public class RoomController {
 
     // 채팅방 퇴장
     @DeleteMapping("/api/rooms/{roomId}")
-    public ResponseEntity<Void> deleteChatRoom(@PathVariable String roomId, @AuthenticationPrincipal Oauth2UserDetails user) {
+    public ResponseEntity<Void> exitChatRoom(@PathVariable String roomId, @AuthenticationPrincipal Oauth2UserDetails user) {
         log.info("roomId: {}, userId: {}", roomId, user.getUser().getId());
         roomService.exitRoom(user.getUser().getId(), roomId);
 
+        return ResponseEntity.ok().build();
+    }
+
+    // 해당 채팅방에 없는 친구 목록
+    @GetMapping("/api/rooms/{roomId}/friends")
+    public ResponseEntity<List<UserListResponse>> getFriendsListNotInChatRoom(@PathVariable String roomId, @AuthenticationPrincipal Oauth2UserDetails user) {
+        return ResponseEntity.ok(roomService.getFriendsListNotInChatRoom(user.getUser(), roomId));
+    }
+
+    // 채팅방 유저 추가
+    @PutMapping("/api/rooms/{roomId}")
+    public ResponseEntity<Void> addMembers(@PathVariable String roomId,
+                                           @RequestBody RoomInviteRequest request,
+                                           @AuthenticationPrincipal Oauth2UserDetails user) {
+        List<Integer> invitedIds = request.getInvitedIds();
+        log.info("add roomId {} to {} users", roomId, invitedIds.size());
+
+        roomService.addMembers(roomId, user.getUser(), invitedIds);
+
+        roomWebSocketService.notifyUsersAboutNewRoom(invitedIds, roomId);
         return ResponseEntity.ok().build();
     }
 
