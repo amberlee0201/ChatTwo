@@ -10,6 +10,7 @@ import com.ce.chat2.user.dto.UserListResponse;
 import com.ce.chat2.user.exception.UnAuthorizedUser;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class ApiFollowController {
@@ -34,7 +36,7 @@ public class ApiFollowController {
                 if (uid != userDetails.getUser().getId()) {
                         throw new UnAuthorizedUser();
                 }
-                System.out.println("친구 목록 가져오기");
+                log.info("친구 목록 가져오기");
                 return ResponseEntity.ok(followService.getFollow(userDetails.getUser()));
         }
 
@@ -42,7 +44,7 @@ public class ApiFollowController {
         @PostMapping("/api/friends/{uid}")
         public ResponseEntity<ResponseData> setFollow(@PathVariable("uid") Integer uid,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
-                System.out.println("친구 추가");
+                log.info("친구 추가");
                 followService.setFollow(userDetails.getUser(), uid);
                 return ResponseEntity.ok(ResponseData.SUCCESS_RESPONSE);
         }
@@ -51,7 +53,7 @@ public class ApiFollowController {
         @DeleteMapping("/api/friends/{uid}")
         public ResponseEntity<ResponseData> deleteFollow(@PathVariable("uid") Integer uid,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
-                System.out.println("친구 삭제");
+                log.info("친구 삭제");
                 followService.deleteFollow(userDetails.getUser(), uid);
                 return ResponseEntity.ok(ResponseData.SUCCESS_RESPONSE);
         }
@@ -60,7 +62,7 @@ public class ApiFollowController {
         @GetMapping("/api/friends/find")
         public ResponseEntity<List<UserFindResponse>> findFollow(@RequestParam("name") String name,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
-                System.out.println("친구 찾기");
+                log.info("친구 찾기");
                 return ResponseEntity.ok(followService.findFollow(userDetails.getUser(), name));
         }
 
