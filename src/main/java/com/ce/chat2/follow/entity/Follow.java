@@ -38,4 +38,8 @@ public class Follow extends BaseEntity {
 
     @Column(name = "follow_is_break")
     boolean isBreak;
+
+    public void updateBreak(Boolean isBreak) {
+        this.isBreak = isBreak;
+    }
 }

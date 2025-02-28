@@ -13,6 +13,10 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "GLOBAL_404_ERROR", "404 에러입니다. 요청한 데이터를 서버가 찾을 수 없습니다."),
     REQUEST_IS_NOT_VALID(HttpStatus.BAD_REQUEST, "REQUEST_IS_NOT_VALID","request 값이 잘못되었습니다. 혹은 json 역직렬화를 할 수 없는 형식입니다."),
 
+    // Follow
+    FOLLOW_NOT_FOUND(HttpStatus.BAD_REQUEST, "FOLLOW_NOT_FOUND", "이 사용자는 친구가 아닙니다."),
+    ALREADY_FOLLOWING(HttpStatus.BAD_REQUEST, "ALREADY_FOLLOWING", "이미 친구입니다."),
+
     //User
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST,"USER_NOT_FOUND", "존재하지 않는 유저입니다."),
     UNAUTHORIZED_USER(HttpStatus.FORBIDDEN, "UNAUTHORIZED_USER", "권한이 없는 유저입니다."),

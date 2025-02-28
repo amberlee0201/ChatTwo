@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> 
+    <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />   
+
+    <style>
+        .color-db {
+            background-color: #0C356A !important;
+        }
+        .color-lb {
+            background-color: #0174be !important;
+        }
+        .color-dy {
+            background-color: #ffc436 !important;
+        }
+        .color-ly {
+            background-color: #fff0ce !important;
+        }
+        .container {
+            width: 600px;
+        }
+        .profile-image {
+            width: 40px; height: 40px; border-radius: 50%;
+        }
+        .vertical-middle {
+            vertical-align: middle;
+        }
+        .width-180 {
+            width: 180px;
+        }
+        .width-360 {
+            width: 260px;
+        }        
+    </style>
+</head>
+<body class="color-db">
+    <div class="container text-center position-absolute top-50 start-50 translate-middle">
+        <div>
+            <table class="table color-ly">
+                <thead>
+                    <tr>
+                        <th class="width-180 vertical-middle color-ly">이름 검색</th>
+                        <th class="width-360 vertical-middle color-ly">
+                            <input type="text" id="name" class="form-control" placeholder="이름을 입력하세요">
+                        </th>
+                        <th class="color-ly"><a class="btn btn-primary" role="button" id="search">검색</a></th>
+                    </tr>
+                </thead>
+            </table>
+            <table class="table">
+                <tbody id="friendsList">
+                </tbody>
+            </table>
+            <a class="btn btn-primary" role="button" href="friends">친구 목록</a>
+            <a class="btn btn-primary" role="button" href="addFriend">친구 추가</a>
+        </div>
+    </div>
+    <script>
+
+        function searchFunction() {
+            const name = document.getElementById('name').value;
+            if (!name) {
+                alert("이름을 입력해주세요.");
+                return;
+            }
+
+            // Construct the URL with a query parameter
+            const url = new URL(`/api/friends/find`, window.location.origin); // `window.location.origin` ensures you use your base url
+            url.searchParams.append('name', name);
+
+            fetch(url, {
+                method: 'GET', // Now correct
+            })
+            .then(response => response.json())
+            .then(data => {
+                const friendsList = document.getElementById('friendsList');
+                friendsList.innerHTML = ''; // Clear previous results
+                // data가 배열이 아니면 오류 메시지이므로 바로 종료한다.
+                if (!Array.isArray(data)) {
+                    alert(data.message);
+                    return;
+                }
+                data.forEach(friend => {
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.id 값을 설정
+                    tr.innerHTML = `
+                        <td class="width-180"><img src="${friend.image}" class="profile-image" ></td>
+                        <td class="width-360 vertical-middle">${friend.name}</td>
+                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${friend.id})">언팔로우</a></td>
+                    `;
+                    friendsList.appendChild(tr);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching data: ", error)
+                alert("오류가 발생하였습니다. 콘솔 로그를 참고하세요");
+            });
+        }
+
+        document.getElementById('search').onclick = searchFunction;
+        document.getElementById('name').addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            searchFunction();
+        }
+    });
+
+        // Function to unfollow a friend by their ID
+        const unfollow = (id) => {
+            fetch('/api/friends/' + id, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                    const row = document.querySelector("tr[data-id='" + id + "']");
+                    if (row) {
+                        row.remove();
+                    }
+                }
+            );
+        };
+
+    </script>
+
+      <!-- 부트스트랩용 js -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+  crossorigin="anonymous"></script>
+    
+</body>
+</html>
