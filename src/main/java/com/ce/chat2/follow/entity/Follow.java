@@ -2,7 +2,6 @@ package com.ce.chat2.follow.entity;
 
 import com.ce.chat2.common.entity.BaseEntity;
 import com.ce.chat2.user.entity.User;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
