@@ -29,7 +29,7 @@ public class FollowService {
 
     public List<UserListResponse> getFollow(User currentUser) {
 
-        return userRepository.findByFrom(currentUser).stream().map(Follow::getTo)
+        return userRepository.findByFrom(currentUser).stream()
                 .map(UserListResponse::to).collect(Collectors.toList());
     }
 
@@ -39,7 +39,7 @@ public class FollowService {
         User friend = userRepository.findById(uid).orElseThrow(() -> new UserNotFound());
 
         // 친구 목록에 있나 확인.
-        Follow follow = userRepository.findByFromAndTo(currentUser, friend).orElse(null);
+        Follow follow = followRepository.findByFromAndTo(currentUser, friend).orElse(null);
 
         if (follow != null && !follow.isBreak()) {
             // 친구 목록에 있으며 isBreak가 false이면
@@ -60,7 +60,7 @@ public class FollowService {
         User friend = userRepository.findById(uid).orElseThrow(() -> new UserNotFound());
 
         // 친구 목록에 있나 확인.
-        Follow follow = userRepository.findByFromAndTo(currentUser, friend)
+        Follow follow = followRepository.findByFromAndTo(currentUser, friend)
                 .orElseThrow(() -> new FollowNotFoundException());
 
         follow.updateBreak(true);
@@ -70,7 +70,6 @@ public class FollowService {
     public List<UserFindResponse> findFollow(User currentUser, String name) {
 
         List<UserFindResponse> friends = userRepository.findByFromAndName(currentUser, "%" + name + "%").stream()
-                .map(Follow::getTo)
                 .map(UserFindResponse::to).collect(Collectors.toList());
 
         if (friends.isEmpty()) {
