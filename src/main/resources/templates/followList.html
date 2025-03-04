@@ -97,15 +97,7 @@
                 <tbody id="usersList">
                 </tbody>
             </table>
-            <table class="table color-ly">
-                <thead>
-                    <tr>
-                        <th class="width-180 color-ly"><img th:src="@{${user.image}}" class="profile-image" alt="User profile image"></th>
-                        <th class="width-360 vertical-middle color-ly" th:text="*{user.name}">내 이름 placeholder</th>
-                        <th class="color-ly"><a class="btn btn-primary color-lb" role="button" th:href="@{/users/{userid}(userid=${user.id})}" >프로필 수정</a></th>
-                    </tr>
-                </thead>
-            </table>
+
             <table class="table">
                 <tbody id="friendsList">
                 </tbody>
@@ -182,6 +174,10 @@
                         `;
                         friendsList.appendChild(tr);
                     });
+                    const tr = friendsList.getElementsByTagName('tr');
+                    if (tr.length == 0) {
+                        friendsList.innerHTML = '<p class="text-light">검색 결과가 없습니다.</p>';
+                    }
             })
             .catch(error => {
                 console.error("Error fetching data: ", error)
