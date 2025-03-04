@@ -10,6 +10,16 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />   
 
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0C356A;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .btn {
+            font-family: Arial, sans-serif;
+        }
         .color-db {
             background-color: #0C356A !important;
         }
@@ -36,29 +46,70 @@
         }
         .width-360 {
             width: 260px;
-        }        
+        }   
+        .header {
+            color: #FFC436;
+            font-size: 24px;
+            margin-top: 20px;
+        }     
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #0174BE;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .nav-btn {
+            background-color: #FFF0CE;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .nav-btn.active {
+            background-color: #FFC436;
+        }
     </style>
 </head>
 <body class="color-db">
+    <h2 class="header">친구 목록/추가</h2>
     <div class="container text-center position-absolute top-50 start-50 translate-middle">
         <div>
             <table class="table color-ly">
                 <thead>
                     <tr>
-                        <!-- TODO 아직 미구현된 상태 -->
-                        <th class="width-180 color-ly">내 프로필 사진 placeholder</th>
-                        <th class="width-360 vertical-middle color-ly">내 이름 placeholder</th>
-                        <th class="color-ly"><a class="btn btn-primary" role="button">내 프로필 수정 placeholder</a></th>
+                        <th class="width-180 vertical-middle color-ly">친구 추가</th>
+                        <th class="width-360 vertical-middle color-ly">
+                            <input type="text" id="name" class="form-control" placeholder="친구를 맺을 사용자의 이름을 입력하세요">
+                        </th>
+                        <th class="color-ly">
+                            <a class="btn btn-primary color-lb" role="button" id="search">이름 검색</a>
+                        </th>
                     </tr>
                 </thead>
             </table>
             <table class="table">
+                <tbody id="usersList">
+                </tbody>
+            </table>
+
+            <table class="table">
                 <tbody id="friendsList">
                 </tbody>
             </table>
-            <a class="btn btn-primary" role="button" href="searchFriend">친구 검색</a>
-            <a class="btn btn-primary" role="button" href="addFriend">친구 추가</a>
+            <a class="btn btn-primary color-lb" role="button" href="searchFriend">친구 검색</a>
         </div>
+    </div>
+    <div class="nav-bar">
+        <a class="btn nav-btn active" role="button" href="/friends">친구 목록</a>
+        <a class="btn nav-btn" role="button" href="/rooms">채팅방</a>
+        <button class="nav-btn">기타</button>
+        <button class="nav-btn" th:onclick="'location.href=\'/users/' + ${user.id} + '\''">내 프로필</button>
     </div>
     <script th:inline="javascript">
         window.onload = function() {
@@ -91,6 +142,95 @@
                     }
             });
         };
+
+        function searchFunction() {
+            const name = document.getElementById('name').value;
+            if (!name) {
+                alert("이름을 입력해주세요.");
+                return;
+            }
+
+            // /api/friends/{name}로 GET 요청을 보내서 친구 검색
+            const url = new URL(`/api/users?name=` + name, window.location.origin); // `window.location.origin` ensures you use your base url
+
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                
+                    const friendsList = document.getElementById('usersList');
+                    friendsList.innerHTML = '';
+                    data.forEach(friend => {
+                        // 만약 친구 목록에 이미 있는 id이면 추가하지 않음
+                        if (document.getElementById('friendsList').querySelector(`tr[data-id='${friend.id}']`)) {
+                            return;
+                        }
+
+                        const tr = document.createElement('tr');
+                        tr.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.to.id 값을 설정
+                        tr.innerHTML = `
+                            <td class="width-180"><img src="${friend.image}" class="profile-image" ></td>
+                            <td class="width-360 vertical-middle">${friend.name}</td>
+                            <td><a class="btn btn-primary" role="button" onclick="follow(${friend.id})">친구 추가</a></td>
+                        `;
+                        friendsList.appendChild(tr);
+                    });
+                    const tr = friendsList.getElementsByTagName('tr');
+                    if (tr.length == 0) {
+                        friendsList.innerHTML = '<p class="text-light">검색 결과가 없습니다.</p>';
+                    }
+            })
+            .catch(error => {
+                console.error("Error fetching data: ", error)
+                alert("오류가 발생하였습니다. 콘솔을 확인하십시오.");
+            });
+        }
+
+        const follow = (id) => {
+            // /api/friends/{uid}로 POST 요청을 보내서 친구 추가      
+            const url = new URL(`/api/friends/` + id, window.location.origin); // `window.location.origin` ensures you use your base url
+
+            fetch(url, {
+                method: 'POST', // Now correct
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code == "SUCCESS") {
+                    // 프로필 이미지 url과 이름을 변수로 가져오기
+                    const newFriend = document.getElementById('usersList')
+                        .querySelector(`tr[data-id='${id}']`);
+
+                    const image = newFriend.querySelector('.profile-image').src;
+                    const name = newFriend.querySelector('.vertical-middle').innerText;
+                    
+                    // 친구 추가 성공 시, 친구 목록에 추가
+                    const friendsList = document.getElementById('friendsList');
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-id', id); // tr의 data-id 속성에 friend.to.id 값을 설정
+                    tr.innerHTML = `
+                        <td class="width-180"><img src="${image}" class="profile-image" ></td>
+                        <td class="width-360 vertical-middle">${name}</td>
+                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${id})">언팔로우</a></td>
+                    `;
+                    friendsList.appendChild(tr);
+
+                    // usersList 목록에서는 삭제
+                    newFriend.remove();
+
+                } else {
+                    alert(data.message);
+                }})
+            .catch(error => {
+                console.error("Error fetching data: ", error)
+                alert("오류가 발생하였습니다. 콘솔을 확인하십시오.");
+            });
+        }
+
+        document.getElementById('search').onclick = searchFunction;
+        document.getElementById('name').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                searchFunction();
+            }
+        });
 
     </script>
 

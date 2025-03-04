@@ -3,13 +3,17 @@ package com.ce.chat2.user.service;
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
 import com.ce.chat2.common.s3.S3FileDto;
 import com.ce.chat2.common.s3.S3Service;
+import com.ce.chat2.user.dto.UserFindResponse;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.exception.UnAuthorizedUser;
 import com.ce.chat2.user.exception.UserNotFound;
 import com.ce.chat2.user.repository.UserRepository;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -62,6 +66,11 @@ public class UserService {
                 );
             }
         }
+    }
+
+    public List<UserFindResponse> findUser(String name) {
+        return userRepository.findByNameContaining(name).stream()
+        .map(UserFindResponse::to).collect(Collectors.toList());
     }
 }
 
