@@ -117,19 +117,15 @@ public class RoomService {
 
         // 예시 메시지
         String latestMessage = "[System] " + updater.getName() + " 님이 채팅방 이름을 변경했습니다.";
-        Instant now = Instant.now();
 
         Room roomWithNewName = Room.builder()
                 .roomId(roomId)
                 .roomName(roomName)
                 .latestMessage(latestMessage)
-                .latestTimestamp(now)
                 .build();
 
         log.info(roomWithNewName.toString());
 
-        roomRepository.update(roomWithNewName);
-
-        return roomWithNewName;
+        return roomRepository.update(roomWithNewName);
     }
 }

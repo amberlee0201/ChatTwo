@@ -17,10 +17,10 @@ public class Participation {
     @Getter(onMethod_ = {@DynamoDbPartitionKey, @DynamoDbAttribute("UserId"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-UserId-index" })})
     private Integer userId;
 
-    @Getter(onMethod_ = {@DynamoDbSortKey, @DynamoDbAttribute("RoomId"),@DynamoDbSecondaryPartitionKey(indexNames = { "RoomId-UserId-index" }) })
+    @Getter(onMethod_ = {@DynamoDbSortKey, @DynamoDbAttribute("RoomId"), @DynamoDbSecondaryPartitionKey(indexNames = { "RoomId-UserId-index" }) })
     private String roomId;
 
-    @Getter(onMethod_ = {@DynamoDbAttribute("CreatedAt")}) // @TODO
+    @Getter(onMethod_ = {@DynamoDbAttribute("CreatedAt")})
     private Instant invitedAt;
 
     @Getter(onMethod_ = {@DynamoDbAttribute("InvitedBy")})
