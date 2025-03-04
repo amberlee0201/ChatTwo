@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+  <html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat2 - Chat Room</title>
+    <!-- SockJS와 STOMP 라이브러리 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stomp-websocket@2.3.4-next/lib/stomp.min.js"></script>
+    <style>
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+      }
+      body {
+          font-family: Arial, sans-serif;
+          background-color: #0C356A;
+          height: 100vh;
+          display: flex;
+          flex-direction: column;
+      }
+      .chat-container {
+          display: flex;
+          max-width: 1200px;
+          width: 100%;
+          height: 100vh;
+          margin: 0 auto;
+          position: relative;
+      }
+      .chat-main {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          background-color: #FFF0CE;
+          transition: margin-left 0.3s ease;
+      }
+      .chat-header {
+          background-color: #0174BE;
+          color: #FFF0CE;
+          padding: 1rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+      }
+      .chat-header h1 {
+          font-size: 1.5rem;
+      }
+      .user-info {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+      }
+      .user-avatar {
+          width: 40px;
+          height: 40px;
+          object-fit: cover;
+          border: 2px solid #FFF0CE;
+      }
+      .chat-messages {
+          flex: 1;
+          padding: 1rem;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+      }
+      .message-wrapper {
+          display: flex;
+          align-items: flex-end;
+          gap: 0.5rem;
+      }
+      .message-wrapper.sent {
+          flex-direction: row-reverse;
+      }
+      .message {
+          max-width: 70%;
+          padding: 0.75rem 1rem;
+          border-radius: 1rem;
+          position: relative;
+          word-wrap: break-word;
+      }
+      .message-time {
+          font-size: 0.7rem;
+          opacity: 0.7;
+          margin-top: 0.3rem;
+          text-align: right;
+      }
+      .message-received {
+          align-self: flex-start;
+          background-color: #0174BE;
+          color: #FFF0CE;
+          border-bottom-left-radius: 0.25rem;
+      }
+      .message-sent {
+          align-self: flex-end;
+          background-color: #FFC436;
+          color: #0C356A;
+          border-bottom-right-radius: 0.25rem;
+      }
+      .read-count {
+          font-size: 0.7rem;
+          background-color: #0C356A;
+          color: #FFF0CE;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+      }
+      .chat-input {
+          padding: 1rem;
+          background-color: #FFF0CE;
+          border-top: 1px solid rgba(12, 53, 106, 0.2);
+      }
+      .chat-form {
+          display: flex;
+          gap: 0.5rem;
+      }
+      .chat-form input {
+          flex: 1;
+          padding: 0.75rem;
+          border: 2px solid #0174BE;
+          border-radius: 1.5rem;
+          outline: none;
+          background-color: white;
+      }
+      .chat-form button {
+          background-color: #0174BE;
+          color: #FFF0CE;
+          border: none;
+          border-radius: 1.5rem;
+          padding: 0 1.5rem;
+          cursor: pointer;
+          font-weight: bold;
+          transition: background-color 0.3s ease;
+      }
+      .chat-form button:hover {
+          background-color: #FFC436;
+          color: #0C356A;
+      }
+      .user-list {
+          width: 250px;
+          background-color: #0C356A;
+          color: #FFF0CE;
+          padding: 1rem;
+          overflow-y: auto;
+          height: 100%;
+          position: absolute;
+          left: 0;
+          top: 0;
+          transition: transform 0.3s ease;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+      }
+      .user-list.hidden {
+          transform: translateX(-100%);
+      }
+      .user-list-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 1px solid rgba(255, 240, 206, 0.2);
+      }
+      .user-list h2 {
+          font-size: 1.2rem;
+      }
+      .user-list-content {
+          flex: 1;
+          overflow-y: auto;
+      }
+      .user-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem;
+          border-radius: 0.5rem;
+          margin-bottom: 0.5rem;
+      }
+      .user-list-footer {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid rgba(255, 240, 206, 0.2);
+      }
+      .leave-btn {
+          background-color: #e74c3c;
+          color: white;
+          border: none;
+          padding: 0.75rem 1rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          width: 100%;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+          transition: background-color 0.3s ease;
+      }
+      .leave-btn:hover {
+          background-color: #c0392b;
+      }
+      .toggle-sidebar {
+          position: absolute;
+          left: 250px;
+          top: 10px;
+          background-color: #0174BE;
+          color: #FFF0CE;
+          border: none;
+          border-radius: 0 4px 4px 0;
+          padding: 0.5rem;
+          cursor: pointer;
+          z-index: 5;
+          transition: left 0.3s ease;
+      }
+      .toggle-sidebar.hidden {
+          left: 0;
+      }
+      .home-btn {
+          background-color: #FFC436;
+          color: #0C356A;
+          border: none;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          text-decoration: none;
+          display: inline-block;
+          transition: background-color 0.3s ease;
+      }
+      .home-btn:hover {
+          background-color: #FFF0CE;
+      }
+      .sidebar-icon {
+          width: 20px;
+          height: 20px;
+          display: inline-block;
+      }
+      /* 새로 추가된 스타일 */
+      .message-sender-info {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+      }
+      .sender-avatar {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid #0174BE;
+      }
+      .sender-name {
+          font-weight: bold;
+          font-size: 0.9rem;
+          color: #0C356A;
+      }
+      .message-content-wrapper {
+          display: flex;
+          flex-direction: column;
+      }
+
+      @media (max-width: 768px) {
+          .user-list {
+              width: 200px;
+          }
+          .toggle-sidebar {
+              left: 200px;
+          }
+      }
+    </style>
+  </head>
+  <body>
+  <div class="chat-container">
+    <!-- 사이드바 토글 -->
+    <button id="toggleSidebar" class="toggle-sidebar">
+      <span class="sidebar-icon">≡</span>
+    </button>
+
+    <!-- 사용자 목록 -->
+    <div id="userList" class="user-list">
+      <div class="user-list-header">
+        <h2>참여자</h2>
+        <a href="/chats" class="home-btn">홈으로</a>
+      </div>
+
+      <div class="user-list-content">
+        <div th:each="chatUser : ${chatUsers}" class="user-item">
+          <span th:text="${chatUser.name}">김대식</span>
+        </div>
+      </div>
+
+      <!-- 채팅방 나가기 버튼 -->
+      <div class="user-list-footer">
+        <button id="leaveChat" class="leave-btn">채팅방 나가기</button>
+      </div>
+    </div>
+
+    <!-- 메인 채팅 영역 -->
+    <div id="chatMain" class="chat-main">
+      <div class="chat-messages" id="messageContainer">
+      </div>
+
+      <div class="chat-input">
+        <div class="chat-form">
+          <input type="text" id="messageInput" placeholder="메세지를 입력하세요." autocomplete="off">
+          <button type="button" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <script th:inline="javascript">
+      // 사이드바 토글
+      const toggleSidebar = document.getElementById('toggleSidebar');
+      const userList = document.getElementById('userList');
+      const chatMain = document.getElementById('chatMain');
+
+      toggleSidebar.addEventListener('click', function() {
+        userList.classList.toggle('hidden');
+        toggleSidebar.classList.toggle('hidden');
+
+        if (userList.classList.contains('hidden')) {
+          chatMain.style.marginLeft = '0';
+        } else {
+          chatMain.style.marginLeft = userList.offsetWidth + 'px';
+        }
+      });
+
+      //사이드바 표시
+      chatMain.style.marginLeft = userList.offsetWidth + 'px';
+
+      // 메시지 컨테이너를 항상 최신 메시지가 보이도록 스크롤
+      const messageContainer = document.getElementById('messageContainer');
+      function scrollToBottom() {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      }
+
+      // 소켓 연결 및 메시지 처리 로직
+      const user = /*[[${user}]]*/ { id: 1, name: 'User', image: '/placeholder.jpg' };
+      const chatRoom = /*[[${chatRoom}]]*/ { id: 12, name: 'Chat Room' };
+      const roomId = chatRoom.id;
+
+      const header = {
+        roomId: roomId,
+        userId: user.id,
+      };
+
+      var messages = /*[[${messages}]]*/ [];
+      var maxMessageIdx = messages.length > 0 ? messages[messages.length - 1].messageId : 0;
+
+      // 메시지 렌더링 함수
+      function renderMessage(message) {
+        const isMyMessage = message.userId === user.id;
+
+        // 메시지 래퍼 생성
+        const messageWrapper = document.createElement('div');
+        messageWrapper.className = isMyMessage ? 'message-wrapper sent' : 'message-wrapper';
+        messageWrapper.setAttribute('data-message-id', message.messageId);
+
+        if (!isMyMessage) {
+          // 다른 사용자의 메시지인 경우 프로필 사진과 이름 표시
+          const contentWrapper = document.createElement('div');
+          contentWrapper.className = 'message-content-wrapper';
+
+          const senderInfo = document.createElement('div');
+          senderInfo.className = 'message-sender-info';
+
+          const avatar = document.createElement('img');
+          avatar.src = message.userImage || '/placeholder.jpg';
+          avatar.alt = 'Profile';
+          avatar.className = 'sender-avatar';
+
+          const name = document.createElement('span');
+          name.className = 'sender-name';
+          name.textContent = message.senderName;
+
+          senderInfo.appendChild(avatar);
+          senderInfo.appendChild(name);
+          contentWrapper.appendChild(senderInfo);
+
+          const messageElement = document.createElement('div');
+          messageElement.className = 'message message-received';
+
+          const contentElement = document.createElement('div');
+          contentElement.textContent = message.content;
+
+          const timeElement = document.createElement('div');
+          timeElement.className = 'message-time';
+          const now = new Date();
+          timeElement.textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+          messageElement.appendChild(contentElement);
+          messageElement.appendChild(timeElement);
+          contentWrapper.appendChild(messageElement);
+
+          messageWrapper.appendChild(contentWrapper);
+        } else {
+          const messageElement = document.createElement('div');
+          messageElement.className = 'message message-sent';
+
+          const contentElement = document.createElement('div');
+          contentElement.textContent = message.content;
+
+          const timeElement = document.createElement('div');
+          timeElement.className = 'message-time';
+          const now = new Date();
+          timeElement.textContent = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+          messageElement.appendChild(contentElement);
+          messageElement.appendChild(timeElement);
+
+          messageWrapper.appendChild(messageElement);
+        }
+
+        // 읽지 않은 사용자 수가 있는 경우 표시
+        if (message.readCnt && message.readCnt > 0) {
+          const readCountElement = document.createElement('div');
+          readCountElement.className = 'read-count';
+          readCountElement.textContent = message.readCnt;
+          messageWrapper.appendChild(readCountElement);
+        }
+
+        // 메시지 래퍼를 컨테이너에 추가
+        messageContainer.appendChild(messageWrapper);
+        scrollToBottom();
+      }
+
+      // 서버에서 받은 메시지 리스트 렌더링
+      window.onload = function () {
+        // 기존 onload 함수 내용 유지
+        scrollToBottom();
+
+        // 메시지 리스트 렌더링
+        messages.forEach(msg => {
+          renderMessage({
+            messageId: msg.messageId,
+            userId: msg.userId,
+            senderName: msg.senderName,
+            content: msg.content,
+            readCnt: msg.readCnt,
+            userImage: msg.userImage || '/placeholder.jpg',
+            timestamp: msg.timestamp || new Date()
+          });
+          maxMessageIdx = Math.max(maxMessageIdx, msg.messageId);
+        });
+      };
+
+      // 소켓 연결
+      const socket = new SockJS('http://localhost:8080/connect');
+      const stompClient = Stomp.over(socket);
+
+      stompClient.connect(header, function (frame) {
+        console.log('Connected: ' + frame);
+        console.log('header: ' + JSON.stringify(header));
+
+        const readCountRequest = {
+          "messageId": maxMessageIdx
+        };
+        stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));
+
+        // 메시지 수신
+        stompClient.subscribe(`/chat-sub/${roomId}`, function (messageOutput) {
+          const message = JSON.parse(messageOutput.body);
+          renderMessage(message);
+          maxMessageIdx = message.messageId;
+
+          const readCountRequest = {
+            "messageId": message.messageId
+          };
+
+          // 읽음 처리
+          stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));
+        });
+
+        // 읽음 이벤트 수신
+        stompClient.subscribe(`/chat-sub/count/${roomId}`, function (readCountResponse) {
+          const readCountRes = JSON.parse(readCountResponse.body);
+          const firstMessageId = readCountRes.firstMessageId;
+          const lastMessageId = readCountRes.lastMessageId;
+          console.log(firstMessageId + "~ " + lastMessageId + " -1 수행");
+
+          // 메시지 목록에서 해당 범위의 메시지 readCnt 감소
+          document.querySelectorAll('.message-wrapper').forEach(messageWrapper => {
+            const messageId = parseInt(messageWrapper.getAttribute('data-message-id'), 10);
+
+            if (messageId >= firstMessageId && messageId <= lastMessageId) {
+              const readCountElement = messageWrapper.querySelector('.read-count');
+              if (readCountElement) {
+                // 현재 읽음 수 가져오기
+                let currentReadCnt = parseInt(readCountElement.textContent, 10);
+                // 0 이하로 내려가지 않도록 처리
+                if (currentReadCnt > 0) {
+                  currentReadCnt -= 1;
+                  if (currentReadCnt === 0) {
+                    // 읽지 않은 사용자가 없으면 요소 제거
+                    readCountElement.remove();
+                  } else {
+                    readCountElement.textContent = currentReadCnt;
+                  }
+                }
+              }
+            }
+          });
+        });
+      });
+
+      // 메시지 보내기
+      function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const messageContent = messageInput.value.trim();
+
+        if (messageContent) {
+          const message = {
+            "content": messageContent,
+            "senderName": user.name,
+            "userId": user.id,
+          };
+          stompClient.send(`/chat-pub/${roomId}`, {}, JSON.stringify(message));
+          messageInput.value = ''; // 입력창 비우기
+        }
+      }
+
+      // Enter 키로 메시지 전송
+      document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+
+      // 채팅방 나가기 버튼 이벤트 처리
+      document.getElementById('leaveChat').addEventListener('click', function() {
+        if (confirm('정말로 채팅방을 나가시겠습니까?')) {
+          // TODO 채팅방 나가기 요청
+        }
+      });
+    </script>
+  </body>
+</html>
