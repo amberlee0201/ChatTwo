@@ -1,9 +1,7 @@
 package com.ce.chat2.room.controller;
 
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
-import com.ce.chat2.room.dto.RoomInviteRequest;
-import com.ce.chat2.room.dto.RoomListResponse;
-import com.ce.chat2.room.dto.RoomInviteResponse;
+import com.ce.chat2.room.dto.*;
 import com.ce.chat2.room.entity.Room;
 import com.ce.chat2.room.service.RoomService;
 import com.ce.chat2.room.service.RoomWebSocketService;
@@ -92,16 +90,27 @@ public class RoomController {
     }
 
     // 채팅방 유저 추가
-    @PutMapping("/api/rooms/{roomId}")
+    @PostMapping("/api/rooms/{roomId}")
     public ResponseEntity<Void> addMembers(@PathVariable String roomId,
                                            @RequestBody RoomInviteRequest request,
                                            @AuthenticationPrincipal Oauth2UserDetails user) {
         List<Integer> invitedIds = request.getInvitedIds();
         log.info("add roomId {} to {} users", roomId, invitedIds.size());
 
-        roomService.addMembers(roomId, user.getUser(), invitedIds);
+        roomService.addMembers(roomId, invitedIds, user.getUser());
 
         roomWebSocketService.notifyUsersAboutNewRoom(invitedIds, roomId);
+        return ResponseEntity.ok().build();
+    }
+
+    // 채팅방 이름 변경
+    @PutMapping("/api/rooms/{roomId}")
+    public ResponseEntity<Void> updateRoomName(@PathVariable String roomId,
+                                                       @RequestBody RoomNameRequest request,
+                                                       @AuthenticationPrincipal Oauth2UserDetails user) {
+        Room room = roomService.updateRoomName(roomId, request.getRoomName(), user.getUser());
+
+        roomWebSocketService.updateRoom(roomId, room);
         return ResponseEntity.ok().build();
     }
 

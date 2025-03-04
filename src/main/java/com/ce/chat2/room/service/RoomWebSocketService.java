@@ -24,15 +24,17 @@ public class RoomWebSocketService {
     private final RoomRepository roomRepository;
     private final SimpMessageSendingOperations messagingTemplate;
 
+    private static final String ROOM_DEST_PREFIX = "/room-sub/room/";
+    private static final String USER_DEST_PREFIX = "/room-sub/user/";
+
     @EventListener
     public void handleSubscriptionEvent(SessionSubscribeEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String destination = headerAccessor.getDestination(); // 구독한 토픽 주소
-        String prefix = "/room-sub/room/";
         log.info("SessionSubscribeEvent - destination = {}", destination);
 
-        if (destination != null && destination.startsWith(prefix)) {
-            String roomId = destination.substring(prefix.length());
+        if (destination != null && destination.startsWith(ROOM_DEST_PREFIX)) {
+            String roomId = destination.substring(ROOM_DEST_PREFIX.length());
             log.info("roomId={}", roomId);
             // DB에서 해당 채팅방 정보 조회
             Room room = roomRepository.findRoomById(roomId);
@@ -48,10 +50,16 @@ public class RoomWebSocketService {
 
     @Async
     public void notifyUsersAboutNewRoom(List<Integer> userIds, String roomId) {
-        String prefix = "/room-sub/user/";
         RoomListResponse listResponse = RoomListResponse.builder()
                 .rooms(List.of(roomId))
                 .build();
-        userIds.forEach(id -> messagingTemplate.convertAndSend(prefix + id, listResponse));
+        userIds.forEach(id -> messagingTemplate.convertAndSend(USER_DEST_PREFIX + id, listResponse));
+    }
+
+    @Async
+    public void updateRoom(String roomId, Room room) {
+        String destination = ROOM_DEST_PREFIX + roomId;
+        RoomResponse response = RoomResponse.of(room);
+        messagingTemplate.convertAndSend(destination, response);
     }
 }

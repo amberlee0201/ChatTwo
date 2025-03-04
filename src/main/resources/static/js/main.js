@@ -20,49 +20,49 @@ let chatRooms = [];
 /** DOMContentLoaded 이벤트: 웹소켓 연결 및 친구 목록 가져오기 초기화 */
 document.addEventListener("DOMContentLoaded", function () {
 
-    // SockJS와 STOMP를 이용하여 웹소켓 연결 초기화
-    const socket = new SockJS(websocketUrl);
-    const stompClient = Stomp.over(socket);
+  // SockJS와 STOMP를 이용하여 웹소켓 연결 초기화
+  const socket = new SockJS(websocketUrl);
+  const stompClient = Stomp.over(socket);
 
-    // STOMP 디버그 메시지 출력
-    stompClient.debug = function (str) {
-        console.log("STOMP DEBUG:", str);
-    };
+  // STOMP 디버그 메시지 출력
+  stompClient.debug = function (str) {
+    console.log("STOMP DEBUG:", str);
+  };
 
-    // 웹소켓 연결 및 초기 구독 설정
-    stompClient.connect({}, function () {
-        console.log("WebSocket 연결 성공");
+  // 웹소켓 연결 및 초기 구독 설정
+  stompClient.connect({}, function () {
+    console.log("WebSocket 연결 성공");
 
-        // 초기 채팅방 목록 요청
-        stompClient.send('/room-pub/rooms/init', {}, {});
+    // 초기 채팅방 목록 요청
+    stompClient.send('/room-pub/rooms/init', {}, {});
 
-        // 사용자 개인별 채팅방 미리보기 구독
-        stompClient.subscribe(`/room-sub/user/${userId}`, function (messageOutput) {
-            const response = JSON.parse(messageOutput.body);
-            const chatRoomIds = response.rooms;
+    // 사용자 개인별 채팅방 미리보기 구독
+    stompClient.subscribe(`/room-sub/user/${userId}`, function (messageOutput) {
+      const response = JSON.parse(messageOutput.body);
+      const chatRoomIds = response.rooms;
 
-            // 각 채팅방에 대해 구독이 없으면 새로 구독
-            chatRoomIds.forEach(roomId => {
-                if (!chatRoomSubscriptions[roomId]) {
-                    chatRoomSubscriptions[roomId] = stompClient.subscribe(`/room-sub/room/${roomId}`, function (messageOutput) {
-                        const roomInfo = JSON.parse(messageOutput.body);
+      // 각 채팅방에 대해 구독이 없으면 새로 구독
+      chatRoomIds.forEach(roomId => {
+        if (!chatRoomSubscriptions[roomId]) {
+          chatRoomSubscriptions[roomId] = stompClient.subscribe(`/room-sub/room/${roomId}`, function (messageOutput) {
+            const roomInfo = JSON.parse(messageOutput.body);
 
-                        // 채팅방 UI 업데이트
-                        addOrUpdateChatRoom(roomInfo);
-                        console.log("채팅방 업데이트:", roomInfo);
+            // 채팅방 UI 업데이트
+            addOrUpdateChatRoom(roomInfo);
+            console.log("채팅방 업데이트:", roomInfo);
 
-                        // 신규 채팅방인 경우 배열에 추가 후 목록 렌더링
-                        if (!chatRooms.some(room => room.roomId === roomInfo.roomId)) {
-                            chatRooms.push(roomInfo);
-                            renderChatList();
-                        }
-                    });
-                    console.log(`Subscribed to chat room: ${roomId}`);
-                }
-            });
-        });
-        renderChatList();
+            // 신규 채팅방인 경우 배열에 추가 후 목록 렌더링
+            if (!chatRooms.some(room => room.roomId === roomInfo.roomId)) {
+              chatRooms.push(roomInfo);
+              renderChatList();
+            }
+          });
+          console.log(`Subscribed to chat room: ${roomId}`);
+        }
+      });
     });
+    renderChatList();
+  });
 
     // 친구 목록 가져오기 (채팅방 생성 및 초대에 사용)
     fetchAllFriends();
@@ -76,23 +76,25 @@ const chatList = document.getElementById("chat-list");
  * @param {Object} room - 채팅방 객체 (roomId, roomName, latestMessage, latestTimestamp 등 포함)
  */
 function addOrUpdateChatRoom(room) {
-    let roomElement = document.getElementById(`room-${room.roomId}`);
+  let roomElement = document.getElementById(`room-${room.roomId}`);
 
-    if (roomElement) {
-        // 기존 채팅방의 정보 업데이트
-        roomElement.querySelector(".room-title").textContent = room.roomName;
-        roomElement.querySelector(".last-message").textContent = room.latestMessage;
-    } else {
-        // 새로운 채팅방 항목 생성 (Bootstrap List Group Item 활용)
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
-        li.id = `room-${room.roomId}`;
-        li.innerHTML = `
+  if (roomElement) {
+    // 기존 채팅방의 정보 업데이트
+    roomElement.querySelector(".room-title").textContent = room.roomName;
+    roomElement.querySelector(".last-message").textContent = room.latestMessage;
+  } else {
+    // 새로운 채팅방 항목 생성 (Bootstrap List Group Item 활용)
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex justify-content-between align-items-center";
+    li.id = `room-${room.roomId}`;
+    li.innerHTML = `
       <div class="d-flex align-items-center">
         <img src="favicon.ico" alt="Profile" class="rounded-circle me-2" style="width:40px; height:40px; background-color:#DDD;">
         <div>
           <div class="room-title fw-bold text-primary">${room.roomName}</div>
-          <div class="last-message">${room.latestMessage}</div>
+          <div class="last-message">${room.latestMessage}
+            <i class="bi bi-pencil-square" onclick="openEditRoomModal('${room.roomId}','${room.roomName}')"></i>
+          </div>
         </div>
       </div>
       <div class="d-flex flex-column text-end">
@@ -103,36 +105,38 @@ function addOrUpdateChatRoom(room) {
         </div>
       </div>
     `;
-        chatList.appendChild(li);
-    }
+    chatList.appendChild(li);
+  }
 
-    // 배열 업데이트: 기존 채팅방이면 수정, 아니면 추가
-    const existingIndex = chatRooms.findIndex(r => r.roomId === room.roomId);
-    if (existingIndex !== -1) {
-        chatRooms[existingIndex] = room;
-    } else {
-        chatRooms.push(room);
-    }
+  // 배열 업데이트: 기존 채팅방이면 수정, 아니면 추가
+  const existingIndex = chatRooms.findIndex(r => r.roomId === room.roomId);
+  if (existingIndex !== -1) {
+    chatRooms[existingIndex] = room;
+  } else {
+    chatRooms.push(room);
+  }
 
-    // 최신 메시지 순으로 정렬 후 UI 렌더링
-    chatRooms.sort((a, b) => new Date(b.latestTimestamp) - new Date(a.latestTimestamp));
-    renderChatList();
+  // 최신 메시지 순으로 정렬 후 UI 렌더링
+  chatRooms.sort((a, b) => new Date(b.latestTimestamp) - new Date(a.latestTimestamp));
+  renderChatList();
 }
 
 /**
  * 채팅방 목록을 UI에 다시 렌더링합니다.
  */
 function renderChatList() {
-    chatList.innerHTML = "";
-    chatRooms.forEach(room => {
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
-        li.id = `room-${room.roomId}`;
-        li.innerHTML = `
+  chatList.innerHTML = "";
+  chatRooms.forEach(room => {
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex justify-content-between align-items-center";
+    li.id = `room-${room.roomId}`;
+    li.innerHTML = `
       <div class="d-flex align-items-center">
         <img src="favicon.ico" alt="Profile" class="rounded-circle me-2" style="width:40px; height:40px; background-color:#DDD;">
         <div>
-          <div class="room-title fw-bold text-primary">${room.roomName}</div>
+          <div class="room-title fw-bold text-primary">${room.roomName}
+            <i class="bi bi-pencil-square" onclick="openEditRoomModal('${room.roomId}','${room.roomName}')"></i>
+          </div>
           <div class="last-message">${room.latestMessage}</div>
         </div>
       </div>
@@ -144,8 +148,8 @@ function renderChatList() {
         </div>
       </div>
     `;
-        chatList.appendChild(li);
-    });
+    chatList.appendChild(li);
+  });
 }
 
 /**
@@ -153,23 +157,19 @@ function renderChatList() {
  * @param {string} timestamp - 채팅방 데이터의 타임스탬프 문자열
  * @returns {string} 포맷팅된 타임스탬프
  */
-function formatChatTimestamp(timestamp) {
-    // 필요에 따라 타임스탬프 포맷을 변경할 수 있음.
-    return timestamp;
-}
 
 /**
  * 서버에서 전체 친구 목록을 가져옵니다.
  */
 async function fetchAllFriends() {
-    try {
-        const response = await fetch(`/api/friends/${userId}`);
-        if (!response.ok) throw new Error('Failed to fetch friends');
-        friends = await response.json();
-        console.log(friends);
-    } catch (error) {
-        console.error('Error fetching friends:', error);
-    }
+  try {
+    const response = await fetch(`/api/friends/${userId}`);
+    if (!response.ok) throw new Error('Failed to fetch friends');
+    friends = await response.json();
+    console.log(friends);
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+  }
 }
 
 /** "새로 만들기" 버튼 DOM 요소 참조 */
@@ -195,19 +195,19 @@ let friends = [];
  * 모달에 친구 목록을 렌더링합니다.
  */
 function renderFriendList() {
-    friendList.innerHTML = "";
-    friends.forEach(friend => {
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex align-items-center";
-        li.dataset.id = friend.id;
-        li.innerHTML = `
+  friendList.innerHTML = "";
+  friends.forEach(friend => {
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex align-items-center";
+    li.dataset.id = friend.id;
+    li.innerHTML = `
       <input type="hidden" value="${friend.id}">
       <img src="${friend.image}" alt="${friend.name}" class="rounded-circle me-2" width="40">
       <span>${friend.name}</span>
     `;
-        li.addEventListener("click", () => toggleFriendSelection(li, friend.id));
-        friendList.appendChild(li);
-    });
+    li.addEventListener("click", () => toggleFriendSelection(li, friend.id));
+    friendList.appendChild(li);
+  });
 }
 
 /**
@@ -216,13 +216,13 @@ function renderFriendList() {
  * @param {string} friendId - 친구의 ID
  */
 function toggleFriendSelection(element, friendId) {
-    if (selectedFriends.has(friendId)) {
-        selectedFriends.delete(friendId);
-        element.classList.remove("active");
-    } else {
-        selectedFriends.add(friendId);
-        element.classList.add("active");
-    }
+  if (selectedFriends.has(friendId)) {
+    selectedFriends.delete(friendId);
+    element.classList.remove("active");
+  } else {
+    selectedFriends.add(friendId);
+    element.classList.add("active");
+  }
 }
 const friendModalEl = document.getElementById('friendModal');
 
@@ -230,11 +230,11 @@ const friendModalEl = document.getElementById('friendModal');
  * "새로 만들기" 버튼 클릭 시, 친구 선택 모달을 엽니다.
  */
 createRoomBtn.addEventListener("click", function () {
-    confirmBtn.dataset.action = "create"; // 신규 채팅방 생성 액션 설정
-    delete confirmBtn.dataset.roomId; // 초대용 roomId 제거
-    renderFriendList();
-    const friendModal = new bootstrap.Modal(friendModalEl);
-    friendModal.show();
+  confirmBtn.dataset.action = "create"; // 신규 채팅방 생성 액션 설정
+  delete confirmBtn.dataset.roomId; // 초대용 roomId 제거
+  renderFriendList();
+  const friendModal = new bootstrap.Modal(friendModalEl);
+  friendModal.show();
 });
 
 /**
@@ -242,7 +242,7 @@ createRoomBtn.addEventListener("click", function () {
  * 선택된 친구 배열 초기화
  */
 friendModalEl.addEventListener('hidden.bs.modal', function (event) {
-    selectedFriends.clear();
+  selectedFriends.clear();
 });
 
 /**
@@ -250,20 +250,20 @@ friendModalEl.addEventListener('hidden.bs.modal', function (event) {
  * 신규 채팅방 생성 또는 기존 채팅방에 친구 초대 기능 수행
  */
 confirmBtn.addEventListener("click", function () {
-    const action = confirmBtn.dataset.action;
-    const roomId = confirmBtn.dataset.roomId;
-    const selectedIds = Array.from(selectedFriends);
-    if (selectedIds.length === 0) {
-        alert("최소 한 명 이상 선택하세요.");
-        return;
-    }
-    if (action === "create") {
-        createChatRoom(selectedIds);
-    } else if (action === "invite" && roomId) {
-        inviteFriendsToRoom(roomId, selectedIds);
-    }
-    // 모달 닫기
-    document.getElementById("friendModal").querySelector(".btn-close").click();
+  const action = confirmBtn.dataset.action;
+  const roomId = confirmBtn.dataset.roomId;
+  const selectedIds = Array.from(selectedFriends);
+  if (selectedIds.length === 0) {
+    alert("최소 한 명 이상 선택하세요.");
+    return;
+  }
+  if (action === "create") {
+    createChatRoom(selectedIds);
+  } else if (action === "invite" && roomId) {
+    inviteFriendsToRoom(roomId, selectedIds);
+  }
+  // 모달 닫기
+  document.getElementById("friendModal").querySelector(".btn-close").click();
 });
 
 /**
@@ -271,19 +271,19 @@ confirmBtn.addEventListener("click", function () {
  * @param {Array} invited - 초대할 친구 ID 배열
  */
 async function createChatRoom(invited) {
-    const response = await fetch('/api/rooms', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({invitedIds: invited})
-    });
-    if (response.ok) {
-        const newRoom = await response.json();
-        const newRoomId = newRoom.roomId;
-        console.log("채팅방 생성 완료:", newRoomId);
-        renderChatList();
-    } else {
-        alert("채팅방 생성에 실패했습니다.");
-    }
+  const response = await fetch('/api/rooms', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({invitedIds: invited})
+  });
+  if (response.ok) {
+    const newRoom = await response.json();
+    const newRoomId = newRoom.roomId;
+    console.log("채팅방 생성 완료:", newRoomId);
+    renderChatList();
+  } else {
+    alert("채팅방 생성에 실패했습니다.");
+  }
 }
 
 /**
@@ -292,15 +292,15 @@ async function createChatRoom(invited) {
  * @returns {Array} 초대 가능한 친구 목록
  */
 async function fetchFriendsNotInRoom(roomId) {
-    try {
-        const response = await fetch(`/api/rooms/${roomId}/friends`);
-        if (!response.ok) throw new Error('친구 목록을 가져오는데 실패했습니다.');
-        const friendsNotInRoom = await response.json();
-        return friendsNotInRoom;
-    } catch (error) {
-        console.error("Error fetching friends:", error);
-        return [];
-    }
+  try {
+    const response = await fetch(`/api/rooms/${roomId}/friends`);
+    if (!response.ok) throw new Error('친구 목록을 가져오는데 실패했습니다.');
+    const friendsNotInRoom = await response.json();
+    return friendsNotInRoom;
+  } catch (error) {
+    console.error("Error fetching friends:", error);
+    return [];
+  }
 }
 
 /**
@@ -308,14 +308,14 @@ async function fetchFriendsNotInRoom(roomId) {
  * @param {string} roomId - 초대할 채팅방 ID
  */
 async function addFriends(roomId) {
-    confirmBtn.dataset.action = "invite";
-    confirmBtn.dataset.roomId = roomId;
-    const friendsNotInRoom = await fetchFriendsNotInRoom(roomId);
-    console.log(friendsNotInRoom);
-    selectedFriends.clear();
-    renderFriendListNotInRoom(friendsNotInRoom);
-    const friendModal = new bootstrap.Modal(document.getElementById("friendModal"));
-    friendModal.show();
+  confirmBtn.dataset.action = "invite";
+  confirmBtn.dataset.roomId = roomId;
+  const friendsNotInRoom = await fetchFriendsNotInRoom(roomId);
+  console.log(friendsNotInRoom);
+  selectedFriends.clear();
+  renderFriendListNotInRoom(friendsNotInRoom);
+  const friendModal = new bootstrap.Modal(document.getElementById("friendModal"));
+  friendModal.show();
 }
 
 /**
@@ -323,19 +323,19 @@ async function addFriends(roomId) {
  * @param {Array} friendsList - 초대 가능한 친구 배열
  */
 function renderFriendListNotInRoom(friendsList) {
-    friendList.innerHTML = "";
-    friendsList.forEach(friend => {
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex align-items-center";
-        li.dataset.id = friend.id;
-        li.innerHTML = `
+  friendList.innerHTML = "";
+  friendsList.forEach(friend => {
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex align-items-center";
+    li.dataset.id = friend.id;
+    li.innerHTML = `
       <input type="hidden" value="${friend.id}">
       <img src="${friend.image}" alt="${friend.name}" class="rounded-circle me-2" width="40">
       <span>${friend.name}</span>
     `;
-        li.addEventListener("click", () => toggleFriendSelection(li, friend.id));
-        friendList.appendChild(li);
-    });
+    li.addEventListener("click", () => toggleFriendSelection(li, friend.id));
+    friendList.appendChild(li);
+  });
 }
 
 /**
@@ -344,22 +344,21 @@ function renderFriendListNotInRoom(friendsList) {
  * @param {Array} selectedIds - 초대할 친구 ID 배열
  */
 async function inviteFriendsToRoom(roomId, selectedIds) {
-    try {
-        const response = await fetch(`/api/rooms/${roomId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ invitedIds: selectedIds })
-        });
-        if (response.ok) {
-            alert("친구 초대 완료!");
-            document.getElementById("friendModal").querySelector(".btn-close").click();
-        } else {
-            alert("친구 초대에 실패했습니다.");
-        }
-    } catch (error) {
-        console.error("친구 초대 오류:", error);
-        alert("친구 초대 중 오류가 발생했습니다.");
+  try {
+    const response = await fetch(`/api/rooms/${roomId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ invitedIds: selectedIds })
+    });
+    if (response.ok) {
+      document.getElementById("friendModal").querySelector(".btn-close").click();
+    } else {
+      alert("친구 초대에 실패했습니다.");
     }
+  } catch (error) {
+    console.error("친구 초대 오류:", error);
+    alert("친구 초대 중 오류가 발생했습니다.");
+  }
 }
 
 /**
@@ -368,25 +367,71 @@ async function inviteFriendsToRoom(roomId, selectedIds) {
  * @param {string} roomId - 나갈 채팅방 ID
  */
 window.exitChatRoom = async function (roomId) {
-    const room = chatRooms.find(room => room.roomId === roomId);
-    if (!room) return;
-    const isConfirmed = window.confirm(`"${room.roomName}" 채팅방에서 나가시겠습니까?`);
-    if (!isConfirmed) return;
-    try {
-        const response = await fetch(`/api/rooms/${roomId}`, {method: 'DELETE'});
-        if (response.ok) {
-            console.log(`✅ "${room.roomName}" 채팅방에서 퇴장 완료: ${roomId}`);
-            chatRooms = chatRooms.filter(r => r.roomId !== roomId);
-            renderChatList();
-            if (chatRoomSubscriptions[roomId]) {
-                chatRoomSubscriptions[roomId].unsubscribe();
-                delete chatRoomSubscriptions[roomId];
-            }
-        } else {
-            alert("채팅방에서 나가기 실패했습니다.");
-        }
-    } catch (error) {
-        console.error("채팅방 나가기 오류:", error);
-        alert("채팅방에서 나가는 중 오류가 발생했습니다.");
+  const room = chatRooms.find(room => room.roomId === roomId);
+  if (!room) return;
+  const isConfirmed = window.confirm(`"${room.roomName}" 채팅방에서 나가시겠습니까?`);
+  if (!isConfirmed) return;
+  try {
+    const response = await fetch(`/api/rooms/${roomId}`, {method: 'DELETE'});
+    if (response.ok) {
+      chatRooms = chatRooms.filter(r => r.roomId !== roomId);
+      renderChatList();
+      if (chatRoomSubscriptions[roomId]) {
+        chatRoomSubscriptions[roomId].unsubscribe();
+        delete chatRoomSubscriptions[roomId];
+      }
+    } else {
+      alert("채팅방에서 나가기 실패했습니다.");
     }
+  } catch (error) {
+    console.error("채팅방 나가기 오류:", error);
+    alert("채팅방에서 나가는 중 오류가 발생했습니다.");
+  }
 };
+
+/**
+ * 방 이름 수정 모달을 열고, 기존 이름을 세팅합니다.
+ * @param {string} roomId - 수정할 방의 ID
+ * @param {string} currentName - 현재 방 이름
+ */
+function openEditRoomModal(roomId, currentName) {
+  document.getElementById('edit-room-name').value = currentName;
+  document.getElementById('save-room-name-btn').setAttribute('data-room-id', roomId);
+
+  const editModal = new bootstrap.Modal(document.getElementById('editRoomModal'));
+  editModal.show();
+}
+
+document.getElementById('save-room-name-btn').addEventListener('click', async function () {
+  const roomId = this.getAttribute('data-room-id');
+  const newName = document.getElementById('edit-room-name').value.trim();
+
+  if (!newName) {
+    alert('방 이름을 입력하세요.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/rooms/${roomId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomName: newName })
+    });
+
+    if (!response.ok) {
+      throw new Error('방 이름 수정 실패');
+    }
+
+    // 성공 시 모달 닫기
+    const editModal = bootstrap.Modal.getInstance(document.getElementById('editRoomModal'));
+    editModal.hide();
+
+    console.log(roomId, newName)
+    alert('채팅방 이름이 수정되었습니다.');
+
+  } catch (error) {
+    console.error(error);
+    alert('채팅방 이름 수정 중 오류가 발생했습니다.');
+  }
+});
+

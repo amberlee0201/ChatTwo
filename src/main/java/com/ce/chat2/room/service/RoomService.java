@@ -96,7 +96,7 @@ public class RoomService {
                 .toList();
     }
 
-    public void addMembers(String roomId, User inviter, List<Integer> invitedIds){
+    public void addMembers(String roomId, List<Integer> invitedIds, User inviter){
 
         Instant now = Instant.now();
         Integer inviterId = inviter.getId();
@@ -113,4 +113,23 @@ public class RoomService {
         participationRepository.batchSave(newParticipations);
     }
 
+    public Room updateRoomName(String roomId, String roomName, User updater) {
+
+        // 예시 메시지
+        String latestMessage = "[System] " + updater.getName() + " 님이 채팅방 이름을 변경했습니다.";
+        Instant now = Instant.now();
+
+        Room roomWithNewName = Room.builder()
+                .roomId(roomId)
+                .roomName(roomName)
+                .latestMessage(latestMessage)
+                .latestTimestamp(now)
+                .build();
+
+        log.info(roomWithNewName.toString());
+
+        roomRepository.update(roomWithNewName);
+
+        return roomWithNewName;
+    }
 }
