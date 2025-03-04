@@ -36,7 +36,7 @@ public class RoomController {
     public String room(@AuthenticationPrincipal Oauth2UserDetails oAuth2User,
                        Model model) {
         model.addAttribute("user", oAuth2User.getUser());
-        return "room/room-list";
+        return "main";
     }
 
     // 기존 채팅방 목록 요청 (처음 room-list 화면 로딩 시 최초 1회)
