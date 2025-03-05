@@ -30,8 +30,7 @@ public class RoomWebSocketService {
     private final SimpMessageSendingOperations messagingTemplate;
     private final ParticipationMessageListener participationMessageListener;
     private final RoomMessageListener roomMessageListener;
-
-    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper objectMapper;
 
     private static final String ROOM_DEST_PREFIX = "/room-sub/room/";
 

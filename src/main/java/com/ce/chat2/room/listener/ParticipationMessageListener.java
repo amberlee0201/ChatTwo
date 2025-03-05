@@ -19,7 +19,7 @@ import java.util.Collections;
 public class ParticipationMessageListener implements MessageListener {
     private final StringRedisTemplate stringRedisTemplate;
     private final SimpMessageSendingOperations messagingTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     private static final String REDIS_TOPIC = "user:participation";
     private static final String USER_DEST_PREFIX = "/room-sub/user/";

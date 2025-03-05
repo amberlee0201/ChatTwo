@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class RoomMessageListener implements MessageListener {
     private final StringRedisTemplate stringRedisTemplate;
     private final SimpMessageSendingOperations messagingTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper objectMapper;
 
     private static final String REDIS_TOPIC = "room:update";
     private static final String ROOM_DEST_PREFIX = "/room-sub/room/";
