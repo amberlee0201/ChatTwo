@@ -101,12 +101,13 @@
                             <input type="text" id="name" class="form-control" placeholder="친구를 맺을 사용자의 이름을 입력하세요">
                         </div>
                         <div class="color-ly">
-                            <a class="btn btn-primary color-lb" role="button" id="search">이름 검색</a>
+                            <a class="btn btn-primary color-lb" role="button" id="search">검색</a>
                         </div>
                     </li></ul>
+                    <ul id="usersList">
+                    </ul>
             </div>
-            <ul id="usersList">
-            </ul>
+
             <div class="border-bottom border-dark mt-1 mb-1"></div>
             <ul id="friendsList">
             </ul>
@@ -186,7 +187,7 @@
                     });
                     const li = usersList.getElementsByTagName('li');
                     if (li.length == 0) {
-                        usersList.innerHTML = '<p class="text-light">검색 결과가 없습니다.</p>';
+                        usersList.innerHTML = '<p>검색 결과가 없습니다.</p>';
                     }
             })
             .catch(error => {
