@@ -1,7 +1,10 @@
 package com.ce.chat2.room.controller;
 
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
-import com.ce.chat2.room.dto.*;
+import com.ce.chat2.room.dto.request.RoomInviteRequest;
+import com.ce.chat2.room.dto.request.RoomNameRequest;
+import com.ce.chat2.room.dto.response.RoomInviteResponse;
+import com.ce.chat2.room.dto.response.RoomListResponse;
 import com.ce.chat2.room.entity.Room;
 import com.ce.chat2.room.service.RoomService;
 import com.ce.chat2.room.service.RoomWebSocketService;
@@ -77,7 +80,6 @@ public class RoomController {
     // 채팅방 퇴장
     @DeleteMapping("/api/rooms/{roomId}")
     public ResponseEntity<Void> exitChatRoom(@PathVariable String roomId, @AuthenticationPrincipal Oauth2UserDetails user) {
-        log.info("exit roomId: {}, userId: {}", roomId, user.getUser().getId());
         roomService.exitRoom(user.getUser().getId(), roomId);
 
         return ResponseEntity.ok().build();
@@ -95,7 +97,6 @@ public class RoomController {
                                            @RequestBody RoomInviteRequest request,
                                            @AuthenticationPrincipal Oauth2UserDetails user) {
         List<Integer> invitedIds = request.getInvitedIds();
-        log.info("add roomId {} to {} users", roomId, invitedIds.size());
 
         roomService.addMembers(roomId, invitedIds, user.getUser());
 
@@ -110,7 +111,7 @@ public class RoomController {
                                                        @AuthenticationPrincipal Oauth2UserDetails user) {
         Room room = roomService.updateRoomName(roomId, request.getRoomName(), user.getUser());
 
-        roomWebSocketService.updateRoom(roomId, room);
+        roomWebSocketService.updateRoom(room);
         return ResponseEntity.ok().build();
     }
 

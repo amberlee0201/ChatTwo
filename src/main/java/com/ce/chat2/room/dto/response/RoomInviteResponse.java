@@ -1,4 +1,4 @@
-package com.ce.chat2.room.dto;
+package com.ce.chat2.room.dto.response;
 
 import lombok.Builder;
 import lombok.Data;

@@ -28,7 +28,6 @@ public class RoomService {
                 .stream()
                 .map(Participation::getRoomId)
                 .toList();
-        log.info("roomList: {}", roomList);
         return roomList;
     }
 
@@ -58,8 +57,6 @@ public class RoomService {
                 .latestTimestamp(now)
                 .build();
 
-        log.info(newRoom.toString());
-
         // 2. ChatRoom 테이블에 데이터 생성
         roomRepository.save(newRoom);
 
@@ -73,7 +70,6 @@ public class RoomService {
                                 .build())
                 .toList();
 
-        log.info("{}", newParticipations.size());
         participationRepository.batchSave(newParticipations);
 
         return newRoom;
@@ -123,8 +119,6 @@ public class RoomService {
                 .roomName(roomName)
                 .latestMessage(latestMessage)
                 .build();
-
-        log.info(roomWithNewName.toString());
 
         return roomRepository.update(roomWithNewName);
     }
