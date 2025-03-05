@@ -16,14 +16,9 @@ public class FollowController {
         return "followList";
     }
 
-    // TODO 아직 구현되지 않음
-    @GetMapping("/addFriend")
-    String addFriend() {
-        return "addFriend";
-    }
-
     @GetMapping("/searchFriend")
-    String searchFriend() {
+    String searchFriend(@AuthenticationPrincipal Oauth2UserDetails userDetails, Model model) {
+        model.addAttribute("user", userDetails.getUser());
         return "searchFriend";
     }
 
