@@ -53,9 +53,15 @@ function createChatRoomItem(room) {
 /** 채팅방 목록 UI 재렌더링 */
 function renderChatList() {
   chatList.innerHTML = "";
-  chatRooms.forEach(room => {
-    chatList.insertAdjacentHTML('beforeend', createChatRoomItem(room));
-  });
+  if (chatRooms.length === 0) {
+    chatList.innerHTML += `<div class="room-title fw-bold text-primary">
+                             채팅방이 없어요! <i class="bi bi-chat-dots-fill"></i>
+                           </div>`;
+  } else {
+    chatRooms.forEach(room => {
+      chatList.insertAdjacentHTML('beforeend', createChatRoomItem(room));
+    });
+  }
 }
 
 /**
@@ -283,7 +289,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // 사용자 채팅방 구독
     stompClient.subscribe(`/room-sub/user/${userId}`, function (messageOutput) {
-      const { rooms: chatRoomIds } = JSON.parse(messageOutput.body);
+      const {rooms: chatRoomIds} = JSON.parse(messageOutput.body);
       chatRoomIds.forEach(roomId => {
         if (!chatRoomSubscriptions[roomId]) {
           chatRoomSubscriptions[roomId] = stompClient.subscribe(`/room-sub/room/${roomId}`, function (msg) {
