@@ -32,17 +32,22 @@
         .color-ly {
             background-color: #fff0ce !important;
         }
+        .radius-10 {
+            border-radius: 10px;
+        }
         .container {
             width: 600px;
+            margin: 20px auto;
+            background-color: white;
+            border: 2px solid #0174BE;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
         }
         .profile-image {
             width: 40px; height: 40px; border-radius: 50%;
         }
-        .vertical-middle {
-            vertical-align: middle;
-        }
+
         .width-180 {
-            width: 180px;
+            width: 140px;
         }
         .width-360 {
             width: 260px;
@@ -74,34 +79,37 @@
         .nav-btn.active {
             background-color: #FFC436;
         }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .padding-10 {
+            padding: 10px;
+        }
     </style>
 </head>
 <body class="color-db">
     <h2 class="header">친구 목록/추가</h2>
-    <div class="container text-center position-absolute top-50 start-50 translate-middle">
+    <div class="container padding-10 radius-10 text-center position-absolute top-50 start-50 translate-middle">
         <div>
-            <table class="table color-ly">
-                <thead>
-                    <tr>
-                        <th class="width-180 vertical-middle color-ly">친구 추가</th>
-                        <th class="width-360 vertical-middle color-ly">
+            <div class="color-ly radius-10">
+                    <ul><li class="d-flex justify-content-between align-items-center padding-10">
+                        <div class="width-180 color-ly">친구 추가</span></div>
+                        <div class="width-360 color-ly">
                             <input type="text" id="name" class="form-control" placeholder="친구를 맺을 사용자의 이름을 입력하세요">
-                        </th>
-                        <th class="color-ly">
+                        </div>
+                        <div class="color-ly">
                             <a class="btn btn-primary color-lb" role="button" id="search">이름 검색</a>
-                        </th>
-                    </tr>
-                </thead>
-            </table>
-            <table class="table">
-                <tbody id="usersList">
-                </tbody>
-            </table>
-
-            <table class="table">
-                <tbody id="friendsList">
-                </tbody>
-            </table>
+                        </div>
+                    </li></ul>
+            </div>
+            <ul id="usersList">
+            </ul>
+            <div class="border-bottom border-dark mt-1 mb-1"></div>
+            <ul id="friendsList">
+            </ul>
             <a class="btn btn-primary color-lb" role="button" href="searchFriend">친구 검색</a>
         </div>
     </div>
@@ -118,15 +126,16 @@
             .then(data => {
                 const friendsList = document.getElementById('friendsList');
                 data.forEach(friend => {
-                    const tr = document.createElement('tr');
-                    tr.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.to.id 값을 설정
+                    const li = document.createElement('li');
+                    li.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.to.id 값을 설정
+                    li.className = 'd-flex justify-content-between align-items-center padding-10';
                     console.log(friend);
-                    tr.innerHTML = `
-                        <td class="width-180"><img src="${friend.image}" class="profile-image" ></td>
-                        <td class="width-360 vertical-middle">${friend.name}</td>
-                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${friend.id})">언팔로우</a></td>
+                    li.innerHTML = `
+                        <div class="width-180"><img src="${friend.image}" class="profile-image" ></div>
+                        <div class="width-360 profile-name">${friend.name}</div>
+                        <div><a class="btn btn-primary" role="button" onclick="unfollow(${friend.id})">언팔로우</a></div>
                     `;
-                    friendsList.appendChild(tr);
+                    friendsList.appendChild(li);
                 });
             });
         };
@@ -136,7 +145,7 @@
                 method: 'DELETE'
             })
             .then(response => {
-                const row = document.querySelector("tr[data-id='" + id + "']");
+                const row = document.querySelector("li[data-id='" + id + "']");
                     if (row) {
                         row.remove();
                     }
@@ -157,26 +166,27 @@
             .then(response => response.json())
             .then(data => {
                 
-                    const friendsList = document.getElementById('usersList');
-                    friendsList.innerHTML = '';
+                    const usersList = document.getElementById('usersList');
+                    usersList.innerHTML = '';
                     data.forEach(friend => {
                         // 만약 친구 목록에 이미 있는 id이면 추가하지 않음
-                        if (document.getElementById('friendsList').querySelector(`tr[data-id='${friend.id}']`)) {
+                        if (document.getElementById('friendsList').querySelector(`li[data-id='${friend.id}']`)) {
                             return;
                         }
 
-                        const tr = document.createElement('tr');
-                        tr.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.to.id 값을 설정
-                        tr.innerHTML = `
-                            <td class="width-180"><img src="${friend.image}" class="profile-image" ></td>
-                            <td class="width-360 vertical-middle">${friend.name}</td>
-                            <td><a class="btn btn-primary" role="button" onclick="follow(${friend.id})">친구 추가</a></td>
+                        const li = document.createElement('li');
+                        li.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.to.id 값을 설정
+                        li.className = 'd-flex justify-content-between align-items-center padding-10';
+                        li.innerHTML = `
+                            <div class="width-180"><img src="${friend.image}" class="profile-image" ></div>
+                            <div class="width-360 profile-name">${friend.name}</div>
+                            <div><a class="btn btn-primary" role="button" onclick="follow(${friend.id})">친구 추가</a></div>
                         `;
-                        friendsList.appendChild(tr);
+                        usersList.appendChild(li);
                     });
-                    const tr = friendsList.getElementsByTagName('tr');
-                    if (tr.length == 0) {
-                        friendsList.innerHTML = '<p class="text-light">검색 결과가 없습니다.</p>';
+                    const li = usersList.getElementsByTagName('li');
+                    if (li.length == 0) {
+                        usersList.innerHTML = '<p class="text-light">검색 결과가 없습니다.</p>';
                     }
             })
             .catch(error => {
@@ -197,21 +207,22 @@
                 if (data.code == "SUCCESS") {
                     // 프로필 이미지 url과 이름을 변수로 가져오기
                     const newFriend = document.getElementById('usersList')
-                        .querySelector(`tr[data-id='${id}']`);
+                        .querySelector(`li[data-id='${id}']`);
 
                     const image = newFriend.querySelector('.profile-image').src;
-                    const name = newFriend.querySelector('.vertical-middle').innerText;
+                    const name = newFriend.querySelector('.profile-name').innerText;
                     
                     // 친구 추가 성공 시, 친구 목록에 추가
                     const friendsList = document.getElementById('friendsList');
-                    const tr = document.createElement('tr');
-                    tr.setAttribute('data-id', id); // tr의 data-id 속성에 friend.to.id 값을 설정
-                    tr.innerHTML = `
-                        <td class="width-180"><img src="${image}" class="profile-image" ></td>
-                        <td class="width-360 vertical-middle">${name}</td>
-                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${id})">언팔로우</a></td>
+                    const li = document.createElement('li');
+                    li.setAttribute('data-id', id); // tr의 data-id 속성에 friend.to.id 값을 설정
+                    li.className = 'd-flex justify-content-between align-items-center padding-10';
+                    li.innerHTML = `
+                        <div class="width-180"><img src="${image}" class="profile-image" ></div>
+                        <div class="width-360 profile-name">${name}</div>
+                        <div><a class="btn btn-primary" role="button" onclick="unfollow(${id})">언팔로우</a></div>
                     `;
-                    friendsList.appendChild(tr);
+                    friendsList.appendChild(li);
 
                     // usersList 목록에서는 삭제
                     newFriend.remove();
