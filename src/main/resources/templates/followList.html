@@ -122,6 +122,8 @@
     </div>
     <script th:inline="javascript">
         window.onload = function() {
+
+            // 친구 목록 가져오기
             fetch('/api/friends/' + [[${user.id}]], {})
             .then(response => response.json())
             .then(data => {
@@ -153,21 +155,22 @@
             });
         };
 
+        // 친구 아닌 회원 검색
         function searchFunction() {
             const name = document.getElementById('name').value;
+            const usersList = document.getElementById('usersList');
+
             if (!name) {
-                alert("이름을 입력해주세요.");
+                usersList.innerHTML = '이름을 입력해 주세요.';
                 return;
             }
 
-            // /api/friends/{name}로 GET 요청을 보내서 친구 검색
             const url = new URL(`/api/users?name=` + name, window.location.origin); // `window.location.origin` ensures you use your base url
 
             fetch(url)
             .then(response => response.json())
             .then(data => {
                 
-                    const usersList = document.getElementById('usersList');
                     usersList.innerHTML = '';
                     data.forEach(friend => {
                         // 만약 친구 목록에 이미 있는 id이면 추가하지 않음

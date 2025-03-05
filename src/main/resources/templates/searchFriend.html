@@ -117,8 +117,10 @@
 
         function searchFunction() {
             const name = document.getElementById('name').value;
+            const friendsList = document.getElementById('friendsList');
+
             if (!name) {
-                alert("이름을 입력해주세요.");
+                friendsList.innerHTML = '이름을 입력해 주세요.';
                 return;
             }
 
@@ -135,7 +137,7 @@
                 friendsList.innerHTML = ''; // Clear previous results
                 // data가 배열이 아니면 오류 메시지이므로 바로 종료한다.
                 if (!Array.isArray(data)) {
-                    alert(data.message);
+                    friendsList.innerHTML = data.message;
                     return;
                 }
                 data.forEach(friend => {
