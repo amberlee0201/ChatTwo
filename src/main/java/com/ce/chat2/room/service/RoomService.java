@@ -3,6 +3,7 @@ package com.ce.chat2.room.service;
 import com.ce.chat2.participation.entity.Participation;
 import com.ce.chat2.participation.repository.ParticipationRepository;
 import com.ce.chat2.room.entity.Room;
+import com.ce.chat2.room.exception.NoFriendsFoundException;
 import com.ce.chat2.room.repository.RoomRepository;
 import com.ce.chat2.user.dto.UserListResponse;
 import com.ce.chat2.user.entity.User;
@@ -24,11 +25,10 @@ public class RoomService {
     private final UserRepository userRepository;
 
     public List<String> sendInitialRooms(Integer userId) {
-        List<String> roomList = participationRepository.findAllRoomsByUserId(userId)
+        return participationRepository.findAllRoomsByUserId(userId)
                 .stream()
                 .map(Participation::getRoomId)
                 .toList();
-        return roomList;
     }
 
     /**
@@ -85,11 +85,16 @@ public class RoomService {
 
         Set<Integer> members = participationRepository.findUserIdsByRoomId(roomId);
 
-        return userRepository.findByFrom(user)
+        List<UserListResponse> responses = userRepository.findByFrom(user)
                 .stream()
                 .filter(f -> !members.contains(f.getId()))
                 .map(UserListResponse::to)
                 .toList();
+
+        if (responses.isEmpty()) {
+            throw new NoFriendsFoundException();
+        }
+        return responses;
     }
 
     public void addMembers(String roomId, List<Integer> invitedIds, User inviter){
