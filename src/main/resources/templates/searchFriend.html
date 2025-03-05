@@ -10,6 +10,15 @@
     href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />   
 
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0C356A;
+            margin: 0;
+            padding: 0;
+            text-align: center;        }
+        .btn {
+            font-family: Arial, sans-serif;
+        }
         .color-db {
             background-color: #0C356A !important;
         }
@@ -22,51 +31,96 @@
         .color-ly {
             background-color: #fff0ce !important;
         }
+        .radius-10 {
+            border-radius: 10px;
+        }
         .container {
             width: 600px;
+            margin: 20px auto;
+            background-color: white;
+            border: 2px solid #0174BE;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
         }
         .profile-image {
             width: 40px; height: 40px; border-radius: 50%;
-        }
-        .vertical-middle {
-            vertical-align: middle;
         }
         .width-180 {
             width: 180px;
         }
         .width-360 {
             width: 260px;
-        }        
+        }
+        .header {
+            color: #FFC436;
+            font-size: 24px;
+            margin-top: 20px;
+        }     
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #0174BE;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .nav-btn {
+            background-color: #FFF0CE;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .nav-btn.active {
+            background-color: #FFC436;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .padding-10 {
+            padding: 10px;
+        }
     </style>
 </head>
 <body class="color-db">
-    <div class="container text-center position-absolute top-50 start-50 translate-middle">
+    <h2 class="header">친구 검색</h2>
+    <div class="container padding-10 radius-10 text-center position-absolute top-50 start-50 translate-middle">
         <div>
-            <table class="table color-ly">
-                <thead>
-                    <tr>
-                        <th class="width-180 vertical-middle color-ly">이름 검색</th>
-                        <th class="width-360 vertical-middle color-ly">
-                            <input type="text" id="name" class="form-control" placeholder="이름을 입력하세요">
-                        </th>
-                        <th class="color-ly"><a class="btn btn-primary" role="button" id="search">검색</a></th>
-                    </tr>
-                </thead>
-            </table>
-            <table class="table">
-                <tbody id="friendsList">
-                </tbody>
-            </table>
-            <a class="btn btn-primary" role="button" href="friends">친구 목록</a>
-            <a class="btn btn-primary" role="button" href="addFriend">친구 추가</a>
+            <div class="radius-10 color-ly">
+                <ul><li class="d-flex justify-content-between padding-10 align-items-center">
+                    <div class="width-180 color-ly">친구 검색</div>
+                    <div class="width-360 color-ly">
+                        <input type="text" id="name" class="form-control" placeholder="찾을 친구의 이름을 입력하세요">
+                    </div>
+                    <div class="color-ly">
+                        <a class="btn btn-primary color-lb" role="button" id="search">검색</a>
+                    </div>
+                </li></ul>
+            </div>
+            <ul id="friendsList">
+            </ul>
+            <a class="btn btn-primary color-lb" role="button" href="friends">친구 목록/추가</a>
         </div>
+    </div>
+    <div class="nav-bar">
+        <a class="btn nav-btn active" role="button" href="/friends">친구 목록</a>
+        <a class="btn nav-btn" role="button" href="/rooms">채팅방</a>
+        <button class="nav-btn">기타</button>
+        <button class="nav-btn" th:onclick="'location.href=\'/users/' + ${user.id} + '\''">내 프로필</button>
     </div>
     <script>
 
         function searchFunction() {
             const name = document.getElementById('name').value;
+            const friendsList = document.getElementById('friendsList');
+
             if (!name) {
-                alert("이름을 입력해주세요.");
+                friendsList.innerHTML = '이름을 입력해 주세요.';
                 return;
             }
 
@@ -83,18 +137,19 @@
                 friendsList.innerHTML = ''; // Clear previous results
                 // data가 배열이 아니면 오류 메시지이므로 바로 종료한다.
                 if (!Array.isArray(data)) {
-                    alert(data.message);
+                    friendsList.innerHTML = data.message;
                     return;
                 }
                 data.forEach(friend => {
-                    const tr = document.createElement('tr');
-                    tr.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.id 값을 설정
-                    tr.innerHTML = `
-                        <td class="width-180"><img src="${friend.image}" class="profile-image" ></td>
-                        <td class="width-360 vertical-middle">${friend.name}</td>
-                        <td><a class="btn btn-primary" role="button" onclick="unfollow(${friend.id})">언팔로우</a></td>
+                    const li = document.createElement('li');
+                    li.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.id 값을 설정
+                    li.className = 'd-flex justify-content-between align-items-center padding-10';
+                    li.innerHTML = `
+                        <div class="width-180"><img src="${friend.image}" class="profile-image" ></div>
+                        <div class="width-360 vertical-middle">${friend.name}</div>
+                        <div><a class="btn btn-primary" role="button" onclick="unfollow(${friend.id})">언팔로우</a></div>
                     `;
-                    friendsList.appendChild(tr);
+                    friendsList.appendChild(li);
                 });
             })
             .catch(error => {
@@ -116,7 +171,7 @@
                 method: 'DELETE'
             })
             .then(response => {
-                    const row = document.querySelector("tr[data-id='" + id + "']");
+                    const row = document.querySelector("li[data-id='" + id + "']");
                     if (row) {
                         row.remove();
                     }
