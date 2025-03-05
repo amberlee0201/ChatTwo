@@ -13,7 +13,15 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/connect")
-                .setAllowedOrigins("http://localhost:8080")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
+
+        registry.addEndpoint("/notification-connect") // 알림을 위한 새로운 웹소켓 엔드포인트 추가
+                .setAllowedOriginPatterns("*") // allowedOrigins 대신 allowedOriginPatterns 사용
+                .withSockJS();
+
+        registry.addEndpoint("/notification-connect-sockjs")
+                .setAllowedOriginPatterns("*") // allowedOrigins 대신 allowedOriginPatterns 사용
                 .withSockJS();
     }
 
@@ -22,7 +30,7 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 //        registry.setApplicationDestinationPrefixes("/publish", "/app");
 //        registry.enableSimpleBroker("/topic");
 
-        registry.setApplicationDestinationPrefixes("/room-pub");
-        registry.enableSimpleBroker("/room-sub");
+        registry.setApplicationDestinationPrefixes("/room-pub", "/notification-pub");
+        registry.enableSimpleBroker("/room-sub", "/topic", "/queue");
     }
 }

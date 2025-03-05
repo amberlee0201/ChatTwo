@@ -1,12 +1,16 @@
 package com.ce.chat2.common.config;
 
 import com.ce.chat2.common.oauth.Oauth2UserService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -21,7 +25,8 @@ public class SecurityConfig {
             .httpBasic(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/admin/**").hasRole("ADMIN") //admin 가능 경로
-                .requestMatchers("/","/static/**", "/images/**").permitAll() //login 전 가능 페이지
+                .requestMatchers("/", "/static/**", "/images/**", "/notification-connect/**",
+                    "/connect/**", "/notification-connect-sockjs/**").permitAll() //login 전 가능 페이지
                 .anyRequest().authenticated() // 그 이외는 인증 필요
             )
             .formLogin(AbstractHttpConfigurer::disable)
@@ -40,5 +45,19 @@ public class SecurityConfig {
 
 
         return http.build();
+    }
+
+    // ✅ CORS 설정
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:8080")); // 특정 Origin 허용
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true); // ✅ 쿠키, 인증 정보 포함 허용
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
