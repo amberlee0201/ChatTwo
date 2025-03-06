@@ -45,14 +45,10 @@ public class RoomWebSocketService {
 
         if (destination != null && destination.startsWith(roomDestPrefix)) {
             String roomId = destination.substring(roomDestPrefix.length());
-            Room room = roomRepository.findRoomById(roomId);
-            if (room != null) {
-                // 채팅방 정보 전송
-                RoomResponse response = RoomResponse.of(room);
-                messagingTemplate.convertAndSend(destination, response);
-            } else {
-                throw new RoomNotFoundException();
-            }
+            Room room = roomRepository.findRoomById(roomId).orElseThrow(RoomNotFoundException::new);
+            // 채팅방 정보 전송
+            RoomResponse response = RoomResponse.of(room);
+            messagingTemplate.convertAndSend(destination, response);
         }
     }
 
