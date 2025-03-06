@@ -156,9 +156,10 @@
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function () {
         const chatList = document.getElementById("chat-list");
+        const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/connect';
 
         // WebSocket 연결
-        const socket = new SockJS("http://localhost:8080/connect");
+        const socket = new SockJS(url);
         const stompClient = Stomp.over(socket);
 
         stompClient.debug = function (str) {

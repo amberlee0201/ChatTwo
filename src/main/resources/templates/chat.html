@@ -451,7 +451,8 @@
       };
 
       // 소켓 연결
-      const socket = new SockJS('http://localhost:8080/connect');
+      const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/connect';
+      const socket = new SockJS(url);
       const stompClient = Stomp.over(socket);
 
       stompClient.connect(header, function (frame) {
