@@ -12,6 +12,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -40,7 +41,12 @@ public class RedisConfig {
         configuration.setPassword(password);
         return new LettuceConnectionFactory(configuration);
     }
-
+    @Bean
+    @Qualifier("chatPubSub")
+//    일반적으로 RedisTemplate<key데이터타입, value데이터타입>을 사용
+    public StringRedisTemplate stringRedisTemplate(@Qualifier("chatPubSub") RedisConnectionFactory redisConnectionFactory){
+        return  new StringRedisTemplate(redisConnectionFactory);
+    }
     @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer(
         @Qualifier("chatPubSub") RedisConnectionFactory redisConnectionFactory,
