@@ -97,10 +97,10 @@ public class ParticipationRepository {
 
         Set<Integer> userIds = new HashSet<>();
         participationGsi.query(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId).build()))
-                .stream().forEach(page -> page.items()
-                .forEach(p -> {
-                    userIds.add(p.getUserId());
-                }));
+                .stream()
+                .forEach(page -> page.items()
+                        .forEach(p -> userIds.add(p.getUserId()))
+                );
         return userIds;
     }
 
