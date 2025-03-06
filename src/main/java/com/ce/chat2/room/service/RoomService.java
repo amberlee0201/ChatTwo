@@ -2,6 +2,11 @@ package com.ce.chat2.room.service;
 
 import com.ce.chat2.participation.entity.Participation;
 import com.ce.chat2.participation.repository.ParticipationRepository;
+import com.ce.chat2.room.dto.request.RoomInviteRequest;
+import com.ce.chat2.room.dto.request.RoomNameRequest;
+import com.ce.chat2.room.dto.response.NewRoomResponse;
+import com.ce.chat2.room.dto.response.RoomListResponse;
+import com.ce.chat2.room.dto.response.RoomResponse;
 import com.ce.chat2.room.entity.Room;
 import com.ce.chat2.room.exception.NoFriendsFoundException;
 import com.ce.chat2.room.repository.RoomRepository;
@@ -14,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,13 +29,15 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final ParticipationRepository participationRepository;
     private final UserRepository userRepository;
+    private final RoomWebSocketService roomWebSocketService;
 
-    public List<String> sendInitialRooms(Integer userId) {
-
-        return participationRepository.findAllRoomsByUserId(userId)
+    public void sendInitialRooms(Integer userId) {
+        RoomListResponse response = RoomListResponse.of(participationRepository.findAllRoomsByUserId(userId)
                 .stream()
                 .map(Participation::getRoomId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+
+        roomWebSocketService.sendInitialRoom(userId, response);
     }
 
     /**
@@ -41,13 +49,17 @@ public class RoomService {
      * 2. SQS를 활용한 비동기 재처리
      *    실패 시 DynamoDB에 직접 다시 쓰는 것이 아니라, SQS에 메시지를 보내고 백그라운드에서 재시도하는 방식도 가능
      */
-    public Room createNewRoom(User creator, List<Integer> allMembersId) {
+    public void createNewRoom(RoomInviteRequest request, User creator) {
+        List<Integer> invitedIds = request.getInvitedIds();
+        Integer creatorId = creator.getId();
+        List<Integer> allMembersId = Stream.concat(invitedIds.stream(), Stream.of(creatorId)).collect(Collectors.toList());
         String latestMessage = "[System] 새로운 채팅방이 생성되었습니다.";
+
         Room newRoom = roomRepository.save(Room.of(creator, latestMessage));
         participationRepository.batchSave(invite(allMembersId, newRoom.getRoomId(), creator.getId()));
 
-        // TODO room response
-        return newRoom;
+        NewRoomResponse response = NewRoomResponse.of(newRoom.getRoomId(), allMembersId);
+        roomWebSocketService.notifyUsersAboutNewRoom(response);
     }
 
     public void exitRoom(Integer userId, String roomId) {
@@ -70,14 +82,20 @@ public class RoomService {
         return responses;
     }
 
-    public void addMembers(String roomId, List<Integer> invitedIds, User inviter){
+    public void addMembers(RoomInviteRequest request, String roomId, User inviter) {
+        List<Integer> invitedIds = request.getInvitedIds();
 
         participationRepository.batchSave(invite(invitedIds, roomId, inviter.getId()));
+        NewRoomResponse response = NewRoomResponse.of(roomId, invitedIds);
+
+        roomWebSocketService.notifyUsersAboutNewRoom(response);
     }
 
-    public Room updateRoomName(String roomId, String roomName, User updater) {
+    public void updateRoomName(RoomNameRequest request, String roomId, String roomName, User updater) {
         String latestMessage = "[System] " + updater.getName() + " 님이 채팅방 이름을 변경했습니다.";
-        return roomRepository.update(Room.of(roomId, roomName, latestMessage));
+        Room updatedRoom = roomRepository.update(Room.of(roomId, roomName, latestMessage));
+        RoomResponse response = RoomResponse.of(updatedRoom);
+        roomWebSocketService.notifyUsersAboutUpdatedRoom(response);
     }
 
     private List<Participation> invite(List<Integer> invited, String roomId, Integer inviterId) {

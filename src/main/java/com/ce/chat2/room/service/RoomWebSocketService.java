@@ -2,6 +2,7 @@ package com.ce.chat2.room.service;
 
 
 import com.ce.chat2.room.dto.response.NewRoomResponse;
+import com.ce.chat2.room.dto.response.RoomListResponse;
 import com.ce.chat2.room.dto.response.RoomResponse;
 import com.ce.chat2.room.entity.Room;
 import com.ce.chat2.room.exception.RoomNotFoundException;
@@ -20,8 +21,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
-import java.util.List;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -35,6 +34,8 @@ public class RoomWebSocketService {
 
     @Value("${websocket.destination.prefix.room}")
     private String roomDestPrefix;
+    @Value("${websocket.destination.prefix.user}")
+    private String userDestPrefix;
 
     // @TODO event source origin
     @EventListener
@@ -56,9 +57,13 @@ public class RoomWebSocketService {
     }
 
     @Async
-    public void notifyUsersAboutNewRoom(List<Integer> userIds, String roomId) {
+    public void sendInitialRoom(Integer userId, RoomListResponse response){
+        messagingTemplate.convertAndSend(userDestPrefix + userId, response);
+    }
+
+    @Async
+    public void notifyUsersAboutNewRoom(NewRoomResponse response) {
         try {
-            NewRoomResponse response = NewRoomResponse.of(roomId, userIds);
             String message = objectMapper.writeValueAsString(response);
             participationMessageListener.publish(message);
         } catch (JsonProcessingException e) {
@@ -67,9 +72,8 @@ public class RoomWebSocketService {
     }
 
     @Async
-    public void updateRoom(Room room) {
+    public void notifyUsersAboutUpdatedRoom(RoomResponse response) {
         try {
-            RoomResponse response = RoomResponse.of(room);
             String message = objectMapper.writeValueAsString(response);
             roomMessageListener.publish(message);
         } catch (JsonProcessingException e) {

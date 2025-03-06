@@ -176,7 +176,6 @@ async function createChatRoom(invited) {
       body: JSON.stringify({invitedIds: invited})
     });
     if (response.ok) {
-      const newRoom = await response.json();
       renderChatList();
     } else {
       alert("채팅방 생성에 실패했습니다.");
