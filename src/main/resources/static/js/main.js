@@ -4,7 +4,7 @@
  * 기능은 그대로 유지하면서 코드 중복을 줄이고 가독성을 높였습니다.
  */
 
-const websocketUrl = "http://localhost:8080/connect";
+const websocketUrl = url;
 const userId = document.body.getAttribute('data-user-id');
 
 // 웹소켓 구독 객체 (key: roomId, value: subscription 객체)
