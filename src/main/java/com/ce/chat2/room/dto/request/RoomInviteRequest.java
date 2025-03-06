@@ -1,10 +1,10 @@
-package com.ce.chat2.room.dto;
+package com.ce.chat2.room.dto.request;
 
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class RoomCreateRequest {
+public class RoomInviteRequest {
     private List<Integer> invitedIds;
 }

@@ -23,12 +23,13 @@ public class RoomRepository {
         return roomTable.getItem(Key.builder().partitionValue(roomId).build());
     }
 
-    public void save(Room room) {
+    public Room save(Room room) {
         roomTable.putItem(room);
+        return room;
     }
 
-    public void update(Room room) {
-        roomTable.updateItem(room);
+    public Room update(Room room) {
+        return roomTable.updateItem(room);
     }
 
     public void delete(Room room) {
