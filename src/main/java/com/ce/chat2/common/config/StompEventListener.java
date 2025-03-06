@@ -20,15 +20,15 @@ public class StompEventListener {
     public void connectHandle(SessionConnectEvent event){
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         sessions.add(accessor.getSessionId());
-        log.info("connect sessiond ID = {}", accessor.getSessionId());
-        log.info("total session= {}", sessions.size());
+//        log.info("connect sessiond ID = {}", accessor.getSessionId());
+//        log.info("total session= {}", sessions.size());
     }
 
     @EventListener
     public void disconnectHandle(SessionDisconnectEvent event){
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         sessions.remove(accessor.getSessionId());
-        log.info("disconnect sessiond ID= {}", accessor.getSessionId());
-        log.info("total session : {}", sessions.size());
+//        log.info("disconnect sessiond ID= {}", accessor.getSessionId());
+//        log.info("total session : {}", sessions.size());
     }
 }

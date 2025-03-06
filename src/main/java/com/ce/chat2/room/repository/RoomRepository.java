@@ -27,8 +27,8 @@ public class RoomRepository {
         roomTable.putItem(room);
     }
 
-    public void update(Room room) {
-        roomTable.updateItem(room);
+    public Room update(Room room) {
+        return roomTable.updateItem(room);
     }
 
     public void delete(Room room) {

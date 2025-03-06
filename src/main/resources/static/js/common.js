@@ -26,11 +26,5 @@ function formatChatTimestamp(isoString) {
     }
 
     // 4️⃣ 전년도 이상
-    return `${year}년 ${month}월 ${day}일`;
+    return `${year}. ${month}. ${day}.`;
 }
-
-// ✅ 사용 예시
-// console.log(formatChatTimestamp("2025-02-25T15:30:00Z")); // 오늘이라면 → "15:30"
-// console.log(formatChatTimestamp("2024-02-24T10:20:00Z")); // 전날이라면 → "어제"
-// console.log(formatChatTimestamp("2024-02-23T08:15:00Z")); // 올해라면 → "2월 23일"
-// console.log(formatChatTimestamp("2023-12-31T23:59:59Z")); // 작년이라면 → "2023년 12월 31일"

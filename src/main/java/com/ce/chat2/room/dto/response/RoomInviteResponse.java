@@ -1,10 +1,10 @@
-package com.ce.chat2.room.dto;
+package com.ce.chat2.room.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class RoomCreateResponse {
+public class RoomInviteResponse {
     private String roomId;
 }
