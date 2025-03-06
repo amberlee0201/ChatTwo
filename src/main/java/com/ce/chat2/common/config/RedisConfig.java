@@ -43,7 +43,6 @@ public class RedisConfig {
     }
     @Bean
     @Qualifier("chatPubSub")
-//    일반적으로 RedisTemplate<key데이터타입, value데이터타입>을 사용
     public StringRedisTemplate stringRedisTemplate(@Qualifier("chatPubSub") RedisConnectionFactory redisConnectionFactory){
         return  new StringRedisTemplate(redisConnectionFactory);
     }

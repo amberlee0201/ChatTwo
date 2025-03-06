@@ -7,7 +7,7 @@ import com.ce.chat2.chat.entity.Chat;
 import com.ce.chat2.chat.repository.ChatRepository;
 import com.ce.chat2.participation.entity.Participation;
 import com.ce.chat2.participation.repository.ParticipationRepository;
-import com.ce.chat2.room.exception.RoomNotFound;
+import com.ce.chat2.room.exception.RoomNotFoundException;
 import com.ce.chat2.room.repository.RoomRepository;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.exception.UserNotFound;
@@ -28,7 +28,7 @@ public class ChatService {
     private final UserRepository userRepository;
 
     public ChatRoomDto getChatHistory(String roomId) {
-        roomRepository.findRoomById(roomId).orElseThrow(RoomNotFound::new);
+        roomRepository.findRoomById(roomId).orElseThrow(RoomNotFoundException::new);
 
         List<Participation> allByRoomId = participationRepository.findAllByRoomId(roomId);
         List<User> participants = new ArrayList<>();

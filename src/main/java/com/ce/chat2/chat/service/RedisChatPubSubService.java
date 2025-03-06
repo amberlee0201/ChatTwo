@@ -7,8 +7,7 @@ import com.ce.chat2.chat.exception.ChatSendException;
 import com.ce.chat2.chat.repository.ChatRepository;
 import com.ce.chat2.participation.entity.Participation;
 import com.ce.chat2.participation.repository.ParticipationRepository;
-import com.ce.chat2.room.entity.Room;
-import com.ce.chat2.room.exception.RoomNotFound;
+import com.ce.chat2.room.exception.RoomNotFoundException;
 import com.ce.chat2.room.repository.RoomRepository;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.exception.UserNotFound;
@@ -44,7 +43,7 @@ public class RedisChatPubSubService implements MessageListener {
         try{
             ChatRequestDto dto = om.readValue(payload, ChatRequestDto.class);
             User sender = userRepository.findById(dto.getUserId()).orElseThrow(UserNotFound::new);
-            roomRepository.findRoomById(dto.getRoomId()).orElseThrow(RoomNotFound::new);
+            roomRepository.findRoomById(dto.getRoomId()).orElseThrow(RoomNotFoundException::new);
             Chat chat = chatRepository.save(Chat.of(dto));
 
             List<Participation> participationList = participationRepository.findAllByRoomId(dto.getRoomId());
