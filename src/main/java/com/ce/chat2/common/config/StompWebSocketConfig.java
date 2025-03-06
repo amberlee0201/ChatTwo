@@ -15,6 +15,10 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/connect")
                 .setAllowedOrigins("http://localhost:8080")
                 .withSockJS();
+
+        registry.addEndpoint("/chat-connect")
+            .setAllowedOrigins("http://localhost:8080")
+            .withSockJS();
     }
 
     @Override
@@ -22,7 +26,7 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 //        registry.setApplicationDestinationPrefixes("/publish", "/app");
 //        registry.enableSimpleBroker("/topic");
 
-        registry.setApplicationDestinationPrefixes("/room-pub");
-        registry.enableSimpleBroker("/room-sub");
+        registry.setApplicationDestinationPrefixes("/room-pub", "/chat-pub");
+        registry.enableSimpleBroker("/room-sub", "/chat-sub");
     }
 }
