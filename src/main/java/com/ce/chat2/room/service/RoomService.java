@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class RoomService {
         return participationRepository.findAllRoomsByUserId(userId)
                 .stream()
                 .map(Participation::getRoomId)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     /**
@@ -68,7 +69,7 @@ public class RoomService {
                                 .invitedAt(now)
                                 .invitedBy(creatorId)
                                 .build())
-                .toList();
+                .collect(Collectors.toList());
 
         participationRepository.batchSave(newParticipations);
 
@@ -89,7 +90,7 @@ public class RoomService {
                 .stream()
                 .filter(f -> !members.contains(f.getId()))
                 .map(UserListResponse::to)
-                .toList();
+                .collect(Collectors.toList());
 
         if (responses.isEmpty()) {
             throw new NoFriendsFoundException();
@@ -109,7 +110,7 @@ public class RoomService {
                                 .invitedAt(now)
                                 .invitedBy(inviterId)
                                 .build())
-                .toList();
+                .collect(Collectors.toList());
 
         participationRepository.batchSave(newParticipations);
     }

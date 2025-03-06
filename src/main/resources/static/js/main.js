@@ -177,7 +177,6 @@ async function createChatRoom(invited) {
     });
     if (response.ok) {
       const newRoom = await response.json();
-      console.log("채팅방 생성 완료:", newRoom.roomId);
       renderChatList();
     } else {
       alert("채팅방 생성에 실패했습니다.");
@@ -281,10 +280,9 @@ document.addEventListener("DOMContentLoaded", async function () {
   // SockJS와 STOMP를 이용한 웹소켓 연결 초기화
   const socket = new SockJS(websocketUrl);
   const stompClient = Stomp.over(socket);
-  stompClient.debug = str => console.log("STOMP DEBUG:", str);
+  // stompClient.debug = str => console.log("STOMP DEBUG:", str);
 
   stompClient.connect({}, function () {
-    console.log("WebSocket 연결 성공");
     stompClient.send('/room-pub/rooms/init', {}, {});
 
     // 사용자 채팅방 구독
@@ -295,9 +293,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           chatRoomSubscriptions[roomId] = stompClient.subscribe(`/room-sub/room/${roomId}`, function (msg) {
             const roomInfo = JSON.parse(msg.body);
             addOrUpdateChatRoom(roomInfo);
-            console.log("채팅방 업데이트:", roomInfo);
           });
-          console.log(`Subscribed to chat room: ${roomId}`);
         }
       });
     });
@@ -306,7 +302,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // 전체 친구 목록 초기 로딩
   allFriends = await fetchAllFriends();
-  console.log("전체 친구 목록:", allFriends);
 });
 
 /** "새로 만들기" 버튼 클릭: 신규 채팅방 생성 모달 열기 */

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -37,7 +38,7 @@ public class ParticipationRepository {
 
     public List<Participation> findAllRoomsByUserId(Integer userId) {
         return participationTable.query(QueryConditional.keyEqualTo(key -> key.partitionValue(userId).build()))
-                .items().stream().toList();
+                .items().stream().collect(Collectors.toList());
     }
 
     public void save(Participation participation) {

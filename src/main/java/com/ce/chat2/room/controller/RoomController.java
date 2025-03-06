@@ -22,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -63,9 +64,8 @@ public class RoomController {
         List<Integer> invitedIds = request.getInvitedIds();
         User creator = user.getUser();
         Integer creatorId = creator.getId();
-        log.info("invited {} users, creatorId: {}", invitedIds.size(), creatorId);
 
-        List<Integer> allMembersId = Stream.concat(invitedIds.stream(), Stream.of(creatorId)).toList();
+        List<Integer> allMembersId = Stream.concat(invitedIds.stream(), Stream.of(creatorId)).collect(Collectors.toList());
         Room newRoom = roomService.createNewRoom(creator, allMembersId);
 
         // send websocket msg async
