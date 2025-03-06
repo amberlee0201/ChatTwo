@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -32,7 +33,8 @@ public class RoomWebSocketService {
     private final RoomMessageListener roomMessageListener;
     private final ObjectMapper objectMapper;
 
-    private static final String ROOM_DEST_PREFIX = "/room-sub/room/";
+    @Value("${websocket.destination.prefix.room}")
+    private String roomDestPrefix;
 
     // @TODO event source origin
     @EventListener
@@ -40,8 +42,8 @@ public class RoomWebSocketService {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         String destination = headerAccessor.getDestination(); // 구독한 토픽 주소
 
-        if (destination != null && destination.startsWith(ROOM_DEST_PREFIX)) {
-            String roomId = destination.substring(ROOM_DEST_PREFIX.length());
+        if (destination != null && destination.startsWith(roomDestPrefix)) {
+            String roomId = destination.substring(roomDestPrefix.length());
             Room room = roomRepository.findRoomById(roomId);
             if (room != null) {
                 // 채팅방 정보 전송
@@ -56,10 +58,7 @@ public class RoomWebSocketService {
     @Async
     public void notifyUsersAboutNewRoom(List<Integer> userIds, String roomId) {
         try {
-            NewRoomResponse response = NewRoomResponse.builder()
-                    .userIds(userIds)
-                    .roomId(roomId)
-                    .build();
+            NewRoomResponse response = NewRoomResponse.of(roomId, userIds);
             String message = objectMapper.writeValueAsString(response);
             participationMessageListener.publish(message);
         } catch (JsonProcessingException e) {

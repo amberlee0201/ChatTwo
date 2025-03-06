@@ -5,6 +5,7 @@ import com.ce.chat2.room.dto.response.RoomListResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -21,11 +22,13 @@ public class ParticipationMessageListener implements MessageListener {
     private final SimpMessageSendingOperations messagingTemplate;
     private final ObjectMapper objectMapper;
 
-    private static final String REDIS_TOPIC = "user:participation";
-    private static final String USER_DEST_PREFIX = "/room-sub/user/";
+    @Value("${redis.topic.user-participation}")
+    private String redisTopic;
+    @Value("${websocket.destination.prefix.user}")
+    private String userDestPrefix;
 
     public void publish(String msg){
-        stringRedisTemplate.convertAndSend(REDIS_TOPIC, msg);
+        stringRedisTemplate.convertAndSend(redisTopic, msg);
     }
 
     @Override
@@ -38,7 +41,7 @@ public class ParticipationMessageListener implements MessageListener {
                     .build();
 
             for (Integer userId : response.getUserIds()) {
-                messagingTemplate.convertAndSend(USER_DEST_PREFIX + userId, roomListResponse);
+                messagingTemplate.convertAndSend(userDestPrefix + userId, roomListResponse);
             }
         } catch (Exception e) {
             log.error("Error processing user room notification", e);

@@ -9,4 +9,8 @@ import java.util.List;
 @Builder
 public class RoomListResponse {
     private List<String> rooms;
+
+    public static RoomListResponse of(List<String> rooms) {
+        return RoomListResponse.builder().rooms(rooms).build();
+    }
 }

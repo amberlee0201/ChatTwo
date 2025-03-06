@@ -23,8 +23,9 @@ public class RoomRepository {
         return roomTable.getItem(Key.builder().partitionValue(roomId).build());
     }
 
-    public void save(Room room) {
+    public Room save(Room room) {
         roomTable.putItem(room);
+        return room;
     }
 
     public Room update(Room room) {

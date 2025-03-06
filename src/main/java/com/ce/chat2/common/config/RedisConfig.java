@@ -24,6 +24,11 @@ public class RedisConfig {
     @Value("${spring.redis.password}")
     private String password;
 
+    @Value("${redis.topic.user-participation}")
+    private String userTopic;
+    @Value("${redis.topic.room-update}")
+    private String roomTopic;
+
     @Bean
     @Qualifier("chatPubSub")
     public RedisConnectionFactory chatPubSubFactory(){
@@ -62,8 +67,8 @@ public class RedisConfig {
     ){
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(redisConnectionFactory);
-        container.addMessageListener(participationMessageListenerAdapter, new PatternTopic("user:participation"));
-        container.addMessageListener(roomMessageListenerAdapter, new PatternTopic("room:update"));
+        container.addMessageListener(participationMessageListenerAdapter, new PatternTopic(userTopic));
+        container.addMessageListener(roomMessageListenerAdapter, new PatternTopic(roomTopic));
         return container;
     }
 }

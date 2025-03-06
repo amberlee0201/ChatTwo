@@ -14,4 +14,8 @@ import java.util.List;
 public class NewRoomResponse {
     private String roomId;
     private List<Integer> userIds;
+
+    public static NewRoomResponse of(String roomId, List<Integer> userIds) {
+        return NewRoomResponse.builder().roomId(roomId).userIds(userIds).build();
+    }
 }

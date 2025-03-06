@@ -7,4 +7,8 @@ import lombok.Data;
 @Builder
 public class RoomInviteResponse {
     private String roomId;
+
+    public static RoomInviteResponse of(String roomId) {
+        return RoomInviteResponse.builder().roomId(roomId).build();
+    }
 }
