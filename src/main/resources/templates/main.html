@@ -82,6 +82,11 @@
 
 
 <!-- 외부 JS 파일 분리 -->
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/connect';
+  /*]]>*/
+</script>
 <script src="/js/main.js"></script>
 <script src="/js/common.js"></script>
 
