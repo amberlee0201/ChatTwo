@@ -1,5 +1,7 @@
 package com.ce.chat2.common.config;
 
+import com.ce.chat2.chat.service.ReadCountService;
+import com.ce.chat2.chat.service.RedisChatPubSubService;
 import com.ce.chat2.room.listener.ParticipationMessageListener;
 import com.ce.chat2.room.listener.RoomMessageListener;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,6 +12,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -38,15 +41,35 @@ public class RedisConfig {
         configuration.setPassword(password);
         return new LettuceConnectionFactory(configuration);
     }
-
+    @Bean
+    @Qualifier("chatPubSub")
+    public StringRedisTemplate stringRedisTemplate(@Qualifier("chatPubSub") RedisConnectionFactory redisConnectionFactory){
+        return  new StringRedisTemplate(redisConnectionFactory);
+    }
+    @Bean
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+        @Qualifier("chatPubSub") RedisConnectionFactory redisConnectionFactory,
+        @Qualifier("messageListenerAdapter") MessageListenerAdapter messageListenerAdapter,
+        @Qualifier("readCountListenerAdapter") MessageListenerAdapter readCountListenerAdapter,
+        @Qualifier("participationMessageListenerAdapter") MessageListenerAdapter participationMessageListenerAdapter,
+        @Qualifier("roomMessageListenerAdapter") MessageListenerAdapter roomMessageListenerAdapter
+    ){
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(redisConnectionFactory);
+        container.addMessageListener(messageListenerAdapter, new PatternTopic("room*"));
+        container.addMessageListener(readCountListenerAdapter, new PatternTopic("readCount*"));
+        return container;
+    }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-
-        template.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
-        return template;
+    public MessageListenerAdapter messageListenerAdapter(
+        RedisChatPubSubService redisChatPubSubService){
+        return new MessageListenerAdapter(redisChatPubSubService, "onMessage");
+    }
+    @Bean
+    public MessageListenerAdapter readCountListenerAdapter(
+        ReadCountService readCountService){
+        return new MessageListenerAdapter(readCountService, "onMessage");
     }
 
     @Bean
@@ -60,15 +83,11 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(
-            @Qualifier("chatPubSub") RedisConnectionFactory redisConnectionFactory,
-            MessageListenerAdapter participationMessageListenerAdapter,
-            MessageListenerAdapter roomMessageListenerAdapter
-    ){
-        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-        container.setConnectionFactory(redisConnectionFactory);
-        container.addMessageListener(participationMessageListenerAdapter, new PatternTopic(userTopic));
-        container.addMessageListener(roomMessageListenerAdapter, new PatternTopic(roomTopic));
-        return container;
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        template.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
+        return template;
     }
 }

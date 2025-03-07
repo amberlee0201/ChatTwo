@@ -25,6 +25,9 @@ public class Participation {
     @Getter(onMethod_ = {@DynamoDbAttribute("InvitedBy")})
     private Integer invitedBy;
 
+    @Getter(onMethod_ = {@DynamoDbAttribute("lastReadChatTime")})
+    private long lastReadChatTime;
+
     public static Participation of(Integer userId, String roomId, Integer invitedBy) {
         Instant now = Instant.now();
         return Participation.builder()
@@ -42,4 +45,8 @@ public class Participation {
                 .build();
     }
 
+    public Participation updateLastReadChatTime(long chatTime){
+        this.lastReadChatTime = chatTime;
+        return this;
+    }
 }
