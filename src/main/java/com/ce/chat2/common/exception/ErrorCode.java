@@ -21,8 +21,19 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST,"USER_NOT_FOUND", "존재하지 않는 유저입니다."),
     UNAUTHORIZED_USER(HttpStatus.FORBIDDEN, "UNAUTHORIZED_USER", "권한이 없는 유저입니다."),
 
+    //Chat
+    CHAT_SEND_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT_SEND_EXCEPTION", "메세지 전송중 오류가 발생했습니다."),
+
+    //Participation
+    PARTICIPATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "PARTICIPATION_NOT_FOUND", "참여 정보를 찾을 수 없습니다."),
+
     //AWS
-    UNAVAILABLE_S3(HttpStatus.SERVICE_UNAVAILABLE, "UNAVAILABLE_S3", "S3 서비스에러가 발생했습니다."),;
+    UNAVAILABLE_S3(HttpStatus.SERVICE_UNAVAILABLE, "UNAVAILABLE_S3", "S3 서비스에러가 발생했습니다."),
+
+    // Room
+    ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "ROOM_NOT_FOUND", "존재하지 않는 방입니다."),
+    NO_FRIENDS_FOUND(HttpStatus.NOT_FOUND, "NO_FRIENDS_FOUND", "초대할 수 있는 친구가 없습니다."),
+    ;
 
     private final HttpStatus status;
     private final String code;

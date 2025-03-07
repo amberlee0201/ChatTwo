@@ -1,13 +1,17 @@
 package com.ce.chat2.participation.repository;
 
 import com.ce.chat2.participation.entity.Participation;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 
@@ -37,7 +41,27 @@ public class ParticipationRepository {
 
     public List<Participation> findAllRoomsByUserId(Integer userId) {
         return participationTable.query(QueryConditional.keyEqualTo(key -> key.partitionValue(userId).build()))
-                .items().stream().toList();
+                .items().stream().collect(Collectors.toList());
+    }
+
+    public List<Participation> findAllByRoomId(String roomId) {
+
+        List<Participation> participations = new ArrayList<>();
+
+        participationGsi.query(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId)))
+            .stream().forEach(p -> participations.addAll(p.items()));
+
+        return participations;
+    }
+
+    public Optional<Participation> findByUserIdAndRoomId(int userId, String roomId){
+        // 복합키를 기반으로 쿼리 조건을 설정
+        SdkIterable<Page<Participation>> result = participationTable.query(
+            QueryConditional.keyEqualTo(key -> key.partitionValue(userId).sortValue(roomId))
+        );
+
+        // 결과가 존재하면 첫 번째 항목을 반환 (유일한 데이터가 보장되므로 첫 번째 항목이 유일)
+        return result.stream().findFirst().flatMap(page -> page.items().stream().findFirst());
     }
 
     public void save(Participation participation) {
@@ -73,10 +97,14 @@ public class ParticipationRepository {
 
         Set<Integer> userIds = new HashSet<>();
         participationGsi.query(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId).build()))
-                .stream().forEach(page -> page.items()
-                .forEach(p -> {
-                    userIds.add(p.getUserId());
-                }));
+                .stream()
+                .forEach(page -> page.items()
+                        .forEach(p -> userIds.add(p.getUserId()))
+                );
         return userIds;
+    }
+
+    public void updateItem(Participation participation){
+        participationTable.updateItem(participation);
     }
 }

@@ -1,6 +1,7 @@
 package com.ce.chat2.room.repository;
 
 import com.ce.chat2.room.entity.Room;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -19,16 +20,17 @@ public class RoomRepository {
         this.roomTable = dynamoDbEnhancedClient.table(chatRoomTableName, TableSchema.fromBean(Room.class));
     }
 
-    public Room findRoomById(String roomId) {
-        return roomTable.getItem(Key.builder().partitionValue(roomId).build());
+    public Optional<Room> findRoomById(String roomId) {
+        return Optional.ofNullable(roomTable.getItem(Key.builder().partitionValue(roomId).build()));
     }
 
-    public void save(Room room) {
+    public Room save(Room room) {
         roomTable.putItem(room);
+        return room;
     }
 
-    public void update(Room room) {
-        roomTable.updateItem(room);
+    public Room update(Room room) {
+        return roomTable.updateItem(room);
     }
 
     public void delete(Room room) {
