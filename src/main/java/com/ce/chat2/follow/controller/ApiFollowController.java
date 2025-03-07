@@ -8,6 +8,7 @@ import com.ce.chat2.follow.service.FollowService;
 import com.ce.chat2.user.dto.UserFindResponse;
 import com.ce.chat2.user.dto.UserListResponse;
 import com.ce.chat2.user.exception.UnAuthorizedUser;
+import com.ce.chat2.notification.controller.NotificationController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class ApiFollowController {
         private final FollowService followService;
+        private final NotificationController notificationController;
 
         // 친구 목록을 가져오는 API
         @GetMapping("/api/friends/{uid}")
@@ -44,6 +46,11 @@ public class ApiFollowController {
         public ResponseEntity<ResponseData> setFollow(@PathVariable("uid") Integer uid,
                         @AuthenticationPrincipal Oauth2UserDetails userDetails) {
                 followService.setFollow(userDetails.getUser(), uid);
+
+                // 🔥 친구 추가 알림 전송 (WebSocket)
+                String senderName = userDetails.getUser().getName();
+                notificationController.sendFriendNotification(senderName, uid.toString());
+
                 return ResponseEntity.ok(ResponseData.SUCCESS_RESPONSE);
         }
 
