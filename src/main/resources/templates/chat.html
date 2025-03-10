@@ -310,11 +310,6 @@
         <span th:text="${participant.name}" class="participant-name">김대식</span>
       </div>
     </div>
-
-    <!-- 채팅방 나가기 버튼 -->
-    <div class="user-list-footer">
-      <button id="leaveChat" class="leave-btn">채팅방 나가기</button>
-    </div>
   </div>
 
   <!-- 메인 채팅 영역 -->
@@ -525,13 +520,6 @@
   document.getElementById('messageInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
       sendMessage();
-    }
-  });
-
-  // 채팅방 나가기 버튼 이벤트 처리
-  document.getElementById('leaveChat').addEventListener('click', function() {
-    if (confirm('정말로 채팅방을 나가시겠습니까?')) {
-      // TODO 채팅방 나가기 요청
     }
   });
 
