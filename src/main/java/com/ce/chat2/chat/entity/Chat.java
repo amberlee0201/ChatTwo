@@ -51,8 +51,8 @@ public class Chat {
             .build();
     }
 
-    public boolean compareTime(long lastReadTime){
-        return lastReadTime <= this.createdAt.toEpochMilli(); // lastReadTime가 더 늦거나 같으면 true
+    public boolean isEqualOrAfter(long lastReadTime){
+        return lastReadTime >= this.createdAt.toEpochMilli(); // lastReadTime가 더 늦거나 같으면 true
     }
 
     public String timeToString(){
