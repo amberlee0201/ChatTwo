@@ -28,15 +28,19 @@ public class ParticipationRepository {
     private final DynamoDbEnhancedClient enhancedClient;
 
     private final DynamoDbTable<Participation> participationTable;
-    private final DynamoDbIndex<Participation> participationGsi;
+    private final DynamoDbIndex<Participation> participationGsiWithUserId;
+    private final DynamoDbIndex<Participation> participationGsiWithLastReadChatTime;
 
     public ParticipationRepository(DynamoDbEnhancedClient dynamoDbEnhancedClient,
                                    @Value("${cloud.aws.dynamodb.table-name.participation}") String participationTableName,
-                                   @Value("${cloud.aws.dynamodb.index.participation-gsi}") String participationGsi) {
+                                   @Value("${cloud.aws.dynamodb.index.participation-gsi}") String participationGsiWithUserId,
+                                   @Value("${cloud.aws.dynamodb.index.participation-read-time-gsi}") String participationGsiWithLastReadChatTime
+    ) {
         this.enhancedClient = dynamoDbEnhancedClient;
         this.participationTable = enhancedClient.table(participationTableName,
                 TableSchema.fromBean(Participation.class));
-        this.participationGsi = participationTable.index(participationGsi);
+        this.participationGsiWithUserId = participationTable.index(participationGsiWithUserId);
+        this.participationGsiWithLastReadChatTime = participationTable.index(participationGsiWithLastReadChatTime);
     }
 
     public List<Participation> findAllRoomsByUserId(Integer userId) {
@@ -45,17 +49,23 @@ public class ParticipationRepository {
     }
 
     public List<Participation> findAllByRoomId(String roomId) {
+        return participationGsiWithUserId.query(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId)))
+            .stream()
+            .flatMap(page -> page.items().stream())
+            .collect(Collectors.toList());
 
-        List<Participation> participations = new ArrayList<>();
+    }
 
-        participationGsi.query(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId)))
-            .stream().forEach(p -> participations.addAll(p.items()));
-
-        return participations;
+    public List<Participation> findAllByRoomIdSortByLastReadChatTimeDesc(String roomId) {
+        return participationGsiWithLastReadChatTime.query(r ->
+                r.queryConditional(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId)))
+                    .scanIndexForward(false)
+            ).stream()
+            .flatMap(page -> page.items().stream())
+            .collect(Collectors.toList());
     }
 
     public Optional<Participation> findByUserIdAndRoomId(int userId, String roomId){
-        // 복합키를 기반으로 쿼리 조건을 설정
         SdkIterable<Page<Participation>> result = participationTable.query(
             QueryConditional.keyEqualTo(key -> key.partitionValue(userId).sortValue(roomId))
         );
@@ -96,7 +106,7 @@ public class ParticipationRepository {
     public Set<Integer> findUserIdsByRoomId(String roomId) {
 
         Set<Integer> userIds = new HashSet<>();
-        participationGsi.query(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId).build()))
+        participationGsiWithUserId.query(QueryConditional.keyEqualTo(key -> key.partitionValue(roomId).build()))
                 .stream()
                 .forEach(page -> page.items()
                         .forEach(p -> userIds.add(p.getUserId()))

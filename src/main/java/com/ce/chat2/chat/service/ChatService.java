@@ -32,16 +32,12 @@ public class ChatService {
     public ChatRoomDto getChatHistory(String roomId) {
         roomRepository.findRoomById(roomId).orElseThrow(RoomNotFoundException::new);
 
-        List<Participation> allByRoomId = participationRepository.findAllByRoomId(roomId)
-            .stream().sorted(Comparator.comparingLong(Participation::getLastReadChatTime).reversed())
-            .collect(Collectors.toList());
+        List<Participation> allByRoomId = participationRepository.findAllByRoomIdSortByLastReadChatTimeDesc(roomId);
 
         List<User> participants = new ArrayList<>();
         allByRoomId.forEach(p -> participants.add(userRepository.findById(p.getUserId()).orElseThrow(UserNotFound::new)));
 
-        List<Chat> chats = chatRepository.findAllByRoomId(roomId).stream()
-            .sorted(Comparator.comparingLong((Chat c) -> c.getCreatedAt().toEpochMilli()).reversed())
-            .collect(Collectors.toList());
+        List<Chat> chats = chatRepository.findAllByRoomIdSortByCreatedAtDesc(roomId);
 
         List<ChatResponseDto> chatResponseList = new ArrayList<>();
 

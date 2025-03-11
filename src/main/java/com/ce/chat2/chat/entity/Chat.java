@@ -11,6 +11,8 @@ import lombok.Setter;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @Setter
@@ -20,7 +22,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 @DynamoDbBean
 public class Chat {
 
-    @Getter(onMethod_ = {@DynamoDbPartitionKey, @DynamoDbAttribute("RoomId")})
+    @Getter(onMethod_ = {@DynamoDbPartitionKey, @DynamoDbAttribute("RoomId"), @DynamoDbSecondaryPartitionKey(indexNames = { "RoomId-CreatedAt-index" })})
     private String roomId;
 
     @Getter(onMethod_ = {@DynamoDbSortKey, @DynamoDbAttribute("ChatId")})
@@ -35,7 +37,7 @@ public class Chat {
     @Getter(onMethod_ = {@DynamoDbAttribute("File")})
     private ChatFile file;
 
-    @Getter(onMethod_ = {@DynamoDbAttribute("CreatedAt")})
+    @Getter(onMethod_ = {@DynamoDbAttribute("CreatedAt"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-CreatedAt-index" })})
     private Instant createdAt;
 
     public static Chat of(ChatRequestDto chatRequestDto){
