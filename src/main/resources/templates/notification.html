@@ -115,7 +115,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    fetch("/notifications")
+    fetch("api/notifications")
     .then(response => response.json())
     .then(data => {
       const notificationList = document.getElementById("notification-list");
