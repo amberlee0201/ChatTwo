@@ -29,19 +29,19 @@ const selectedFriends = new Set();
 function createChatRoomItem(room) {
   return `
     <li class="list-group-item d-flex justify-content-between align-items-center" id="room-${room.roomId}">
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center flex-grow-1">
         <img src="favicon.ico" alt="Profile" class="rounded-circle me-2" style="width:40px; height:40px; background-color:#DDD;">
-        <div>
-          <div class="room-title fw-bold text-primary">
+        <a href="/chats/${room.roomId}" class="text-decoration-none text-dark w-100">
+          <div class="room-title fw-bold text-primary d-flex align-items-center">
             ${room.roomName}
-            <i class="bi bi-pencil-square" onclick="openEditRoomModal('${room.roomId}','${room.roomName}')"></i>
           </div>
-          <div class="last-message">${room.latestMessage}</div>
-        </div>
+          <div class="last-message text-muted">${room.latestMessage}</div>
+        </a>
       </div>
       <div class="d-flex flex-column text-end">
         <div class="timestamp">${formatChatTimestamp(room.latestTimestamp)}</div>
         <div class="mt-2">
+          <button class="btn btn-info btn-sm me-1" onclick="openEditRoomModal('${room.roomId}','${room.roomName}')">이름 바꾸기</button>
           <button class="btn btn-warning btn-sm me-1" onclick="addFriends('${room.roomId}')">친구 초대</button>
           <button class="btn btn-danger btn-sm" onclick="exitChatRoom('${room.roomId}')">나가기</button>
         </div>
