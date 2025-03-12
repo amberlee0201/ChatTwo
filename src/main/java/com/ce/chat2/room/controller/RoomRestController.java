@@ -63,6 +63,6 @@ public class RoomRestController {
     // 채팅방 참여자 목록 조회
     @GetMapping("/api/rooms/{roomId}/participants")
     public ResponseEntity<List<UserListResponse>> getMembers(@PathVariable String roomId, @AuthenticationPrincipal Oauth2UserDetails user) {
-        return ResponseEntity.ok(roomService.getMembers(user.getUser(), roomId));
+        return ResponseEntity.ok(roomService.getMembers(roomId));
     }
 }

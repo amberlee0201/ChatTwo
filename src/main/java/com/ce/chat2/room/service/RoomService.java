@@ -13,6 +13,7 @@ import com.ce.chat2.room.repository.RoomRepository;
 import com.ce.chat2.user.dto.UserListResponse;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.repository.UserRepository;
+import com.ce.chat2.room.exception.NoMembersFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -103,18 +104,24 @@ public class RoomService {
                 .map(id -> Participation.of(id, roomId, inviterId))
                 .collect(Collectors.toList());
     }
-
-    public List<UserListResponse> getMembers(User user, String roomId) {
+    /**
+     * 채팅방 참여자의 목록 조회
+     *
+     * @param roomId 채팅방 ID
+     * @return 채팅방 참여자를 표현하는 UserListResponse List
+     * @throws NoMembersFoundException 채팅방에 참여자가 없을 때 예외 발생
+     */
+    public List<UserListResponse> getMembers(String roomId) {
 
         Set<Integer> members = participationRepository.findUserIdsByRoomId(roomId);
 
-        List<UserListResponse> responses = userRepository.findByFrom(user)
+        List<UserListResponse> responses = userRepository.findAll()
                 .stream()
                 .filter(f -> members.contains(f.getId()))
                 .map(UserListResponse::to)
                 .collect(Collectors.toList());
         if (responses.isEmpty()) {
-            throw new NoFriendsFoundException();
+            throw new NoMembersFoundException();
         }
         return responses;
     }
