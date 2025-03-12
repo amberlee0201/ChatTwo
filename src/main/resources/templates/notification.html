@@ -88,6 +88,24 @@
       background-color: #FFC436;
     }
 
+    /* 네비게이션 바에서 알림 배지 스타일을 수정 */
+    .nav-bar .nav-btn.active {
+      position: relative;
+    }
+
+    #notificationBadge {
+      position: absolute;
+      top: 0px;
+      right: 410px;
+      background-color: red;
+      color: white;
+      border-radius: 50%;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      display: none; /* 기본은 숨김! */
+    }
+
   </style>
 </head>
 <body>
@@ -106,72 +124,20 @@
 <div class="nav-bar">
   <a class="btn nav-btn" role="button" href="/friends">친구 목록</a>
   <a class="btn nav-btn" role="button" href="/rooms">채팅방</a>
-  <a class="btn nav-btn active" role="button" href="/notifications">알림</a>
+  <!-- 알림 아이콘과 배지 -->
+  <div class="nav-btn-wrapper">
+    <a class="btn nav-btn" role="button" href="/notifications">
+      알림
+    </a>
+    <span id="notificationBadge">1</span>
+  </div>
   <a class="btn nav-btn" role="button"
      th:href="@{/users/{id}(id=${user != null and user.id != null ? user.id : 'test-user'})}">
     내 프로필
   </a>
 </div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    fetch("api/notifications")
-    .then(response => response.json())
-    .then(data => {
-      const notificationList = document.getElementById("notification-list");
-      data.forEach(notification => {
-        addNotificationToList(notification.message);
-      });
-    })
-    .catch(error => console.error("🚨 알림 목록 불러오기 실패:", error));
-
-    // WebSocket 연결
-    const socket = new SockJS("/notification-connect");
-    const stompClient = Stomp.over(socket);
-
-    stompClient.connect({}, function (frame) {
-      console.log("✅ STOMP 연결 성공:", frame);
-
-      // 📩 실시간 알림 구독
-      stompClient.subscribe("/topic/notification-sub", function (message) {
-        const notification = JSON.parse(message.body);
-        console.log("📩 받은 알림:", notification.message);
-        addNotificationToList(notification.message);
-      });
-    });
-  });
-
-  function addNotificationToList(message) {
-    const notificationList = document.getElementById("notification-list");
-    const newItem = document.createElement("li");
-    newItem.classList.add("notification-item");
-    newItem.textContent = message;
-    notificationList.prepend(newItem); // 최신 알림이 위로 가도록 추가
-  }
-
-  function clearNotifications() {
-    document.getElementById("notification-list").innerHTML = "";
-  }
-
-  function sendFriendNotification(sender, receiver) {
-    fetch("/notifications/friend-added", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `sender=${encodeURIComponent(sender)}&receiver=${encodeURIComponent(receiver)}`,
-    })
-    .then(response => {
-      if (response.ok) {
-        console.log("✅ 친구 추가 알림 전송 성공");
-      } else {
-        console.error("🚨 친구 추가 알림 전송 실패");
-      }
-    })
-    .catch(error => console.error("🚨 서버 오류:", error));
-  }
-
-</script>
+<script src="/js/notification.js"></script>
 
 </body>
 </html>

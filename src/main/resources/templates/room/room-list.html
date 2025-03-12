@@ -114,6 +114,19 @@
             border: none;
         }
 
+        #notificationBadge {
+            position: absolute;
+            top: 0px;
+            right: 15px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            display: none; /* 기본은 숨김! */
+        }
+
     </style>
 </head>
 <body>
@@ -128,7 +141,10 @@
 <div class="nav-bar">
     <a class="btn nav-btn" role="button" href="/friends">친구 목록</a>
     <button class="nav-btn active">채팅방</button>
-    <a class="btn nav-btn" role="button" href="/notifications">알림</a>
+    <div class="nav-btn-wrapper" style="position: relative;">
+        <a class="btn nav-btn" href="/notifications">알림</a>
+        <span id="notificationBadge">1</span>
+    </div>
     <button class="nav-btn" th:onclick="'location.href=\'/users/' + ${user.id} + '\''">내 프로필</button>
 </div>
 
@@ -378,6 +394,6 @@
     });
 
 </script>
-<script src="/js/common.js" ></script>
+<script src="/js/notification.js"></script>
 </body>
 </html>

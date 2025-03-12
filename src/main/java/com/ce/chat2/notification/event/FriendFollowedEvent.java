@@ -9,4 +9,8 @@ import lombok.RequiredArgsConstructor;
 public class FriendFollowedEvent {
     private final User from;
     private final User to;
+
+    public String getMessage() {
+        return "";
+    }
 }
