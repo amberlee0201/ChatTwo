@@ -103,4 +103,19 @@ public class RoomService {
                 .map(id -> Participation.of(id, roomId, inviterId))
                 .collect(Collectors.toList());
     }
+
+    public List<UserListResponse> getMembers(User user, String roomId) {
+
+        Set<Integer> members = participationRepository.findUserIdsByRoomId(roomId);
+
+        List<UserListResponse> responses = userRepository.findByFrom(user)
+                .stream()
+                .filter(f -> members.contains(f.getId()))
+                .map(UserListResponse::to)
+                .collect(Collectors.toList());
+        if (responses.isEmpty()) {
+            throw new NoFriendsFoundException();
+        }
+        return responses;
+    }
 }
