@@ -58,7 +58,7 @@ public class RedisConfig {
         container.setConnectionFactory(redisConnectionFactory);
         container.addMessageListener(participationMessageListenerAdapter, new PatternTopic(userTopic));
         container.addMessageListener(roomMessageListenerAdapter, new PatternTopic(roomTopic));
-        container.addMessageListener(messageListenerAdapter, new PatternTopic("room_*"));
+        container.addMessageListener(messageListenerAdapter, new PatternTopic("chat*"));
         container.addMessageListener(readCountListenerAdapter, new PatternTopic("readCount*"));
         return container;
     }
