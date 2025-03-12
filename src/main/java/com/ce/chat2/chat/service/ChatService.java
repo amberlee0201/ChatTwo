@@ -13,7 +13,9 @@ import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.exception.UserNotFound;
 import com.ce.chat2.user.repository.UserRepository;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,22 +32,24 @@ public class ChatService {
     public ChatRoomDto getChatHistory(String roomId) {
         roomRepository.findRoomById(roomId).orElseThrow(RoomNotFoundException::new);
 
-        List<Participation> allByRoomId = participationRepository.findAllByRoomId(roomId);
+        List<Participation> allByRoomId = participationRepository.findAllByRoomIdSortByLastReadChatTimeDesc(roomId);
+
         List<User> participants = new ArrayList<>();
         allByRoomId.forEach(p -> participants.add(userRepository.findById(p.getUserId()).orElseThrow(UserNotFound::new)));
 
-        List<Chat> chats = chatRepository.findAllByRoomId(roomId);
+        List<Chat> chats = chatRepository.findAllByRoomIdSortByCreatedAtDesc(roomId);
+
         List<ChatResponseDto> chatResponseList = new ArrayList<>();
 
         int idx = 0;
         int cnt = allByRoomId.size();
 
         for(Chat c : chats){
-            while (idx < allByRoomId.size() && c.compareTime(allByRoomId.get(idx).getLastReadChatTime())) {
+            while (cnt > 0 && idx < allByRoomId.size() && c.isEqualOrAfter(allByRoomId.get(idx).getLastReadChatTime())) {
                 cnt--;
                 idx++;
             }
-            User u = userRepository.findById(c.getSenderId()).orElseThrow(UserNotFound::new); // TODO 쿼리 최적화 Participation에 user를 넣을지 논의
+            User u = userRepository.findById(c.getSenderId()).orElseThrow(UserNotFound::new);
             chatResponseList.add(ChatResponseDto.of(c, u, cnt));
         }
         return ChatRoomDto.of(chatResponseList, participants);
