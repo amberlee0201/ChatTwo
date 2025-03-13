@@ -25,7 +25,7 @@ public class Participation {
     @Getter(onMethod_ = {@DynamoDbAttribute("InvitedBy")})
     private Integer invitedBy;
 
-    @Getter(onMethod_ = {@DynamoDbAttribute("lastReadChatTime"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-LastReadChatTime-index" })})
+    @Getter(onMethod_ = {@DynamoDbAttribute("LastReadChatTime"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-LastReadChatTime-index" })})
     private long lastReadChatTime;
 
     public static Participation of(Integer userId, String roomId, Integer invitedBy) {

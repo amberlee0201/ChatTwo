@@ -27,6 +27,8 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**").hasRole("ADMIN") //admin 가능 경로
                 .requestMatchers("/", "/static/**", "/images/**", "/notification-connect/**",
                     "/connect/**", "/notification-connect-sockjs/**").permitAll() //login 전 가능 페이지
+                .requestMatchers("/actuator").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated() // 그 이외는 인증 필요
             )
             .formLogin(AbstractHttpConfigurer::disable)
