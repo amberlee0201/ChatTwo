@@ -31,6 +31,7 @@ public class NotificationApiController {
     @DeleteMapping("/all")
     public ResponseEntity<Void> deleteAllNotifications(@AuthenticationPrincipal Oauth2UserDetails userDetails) {
         log.info("🧽 알림 삭제 시작 - receiverId: {}", userDetails.getUser().getId());
+        notificationService.hideAllByUserId(userDetails.getUser().getId());
         return ResponseEntity.ok().build();
     }
 

@@ -30,7 +30,10 @@
   <div class="container-fluid justify-content-around">
     <a class="btn btn-secondary" role="button" href="/friends">친구 목록</a>
     <button class="btn btn-warning active">채팅방</button>
-    <a class="btn nav-btn" role="button" href="/notifications">알림</a>
+    <a class="btn nav-btn position-relative" role="button" href="/notifications">
+      알림
+      <span id="notificationBadge" style="position:absolute;top:-5px;right:-8px;background-color:red;color:white;border-radius:50%;padding:3px 6px;font-size:12px;font-weight:bold;display:none;"></span>
+    </a>
     <a class="btn btn-secondary" th:href="@{/users/{id}(id=${user.id})}">내 프로필</a>
   </div>
 </nav>
@@ -85,10 +88,12 @@
 <script th:inline="javascript">
   /*<![CDATA[*/
   const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/connect';
+  const socket = new SockJS("/notification-connect");
   /*]]>*/
 </script>
 <script src="/js/main.js"></script>
 <script src="/js/common.js"></script>
+<script src="/js/notification.js"></script>
 
 </body>
 </html>

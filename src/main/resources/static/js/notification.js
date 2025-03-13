@@ -74,6 +74,30 @@ if (!window.notificationInitialized) {
     });
   }
 
+  // ✅ 알림 전체 삭제 버튼 클릭 처리 추가
+  document.addEventListener("DOMContentLoaded", function () {
+    const deleteAllBtn = document.getElementById("deleteAllBtn");
+    if (deleteAllBtn) {
+      deleteAllBtn.addEventListener("click", function () {
+        fetch("/api/notifications/all", {
+          method: "DELETE",
+        })
+        .then((res) => {
+          if (res.ok) {
+            window.clearNotifications(); // ✅ 프론트에서도 제거
+            alert("모든 알림을 숨김 처리했습니다."); // ✅ 변경됨
+          } else {
+            alert("알림 숨김 처리 실패"); // ✅ 변경됨
+          }
+        })
+        .catch((err) => {
+          console.error("🚨 삭제 요청 실패:", err); // ✅ 변경됨
+          alert("에러 발생"); // ✅ 변경됨
+        });
+      });
+    }
+  }); // ✅ 변경됨
+
   // DOMContentLoaded 대응
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initNotifications);

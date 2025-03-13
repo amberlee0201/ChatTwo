@@ -2,6 +2,7 @@ package com.ce.chat2.notification.repository;
 
 import com.ce.chat2.notification.entity.Notification;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -14,4 +15,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     // ✅ 참여자 ID로 알림 전체 삭제
     void deleteByReceiverId(Integer receiverId);
 
+    List<Notification> findByReceiverIdAndIdNotInOrderByCreatedAtDesc(Integer receiverId, Set<Integer> hiddenIds);
 }
