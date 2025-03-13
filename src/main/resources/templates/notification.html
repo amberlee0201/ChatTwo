@@ -64,7 +64,6 @@
       background-color: #ff3b3b;
     }
 
-    /* 네비게이션 바 스타일 */
     .nav-bar {
       display: flex;
       justify-content: space-around;
@@ -78,32 +77,33 @@
     .nav-btn {
       background-color: #FFF0CE;
       border: none;
-      padding: 10px 15px;
+      padding: 10px 20px;
       cursor: pointer;
       font-weight: bold;
       border-radius: 5px;
+      position: relative; /* 배지를 위한 상대적 기준 */
+      display: inline-flex; /* 텍스트와 배지가 함께 정렬되도록 */
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+      text-align: center;
     }
 
     .nav-btn.active {
       background-color: #FFC436;
     }
 
-    /* 네비게이션 바에서 알림 배지 스타일을 수정 */
-    .nav-bar .nav-btn.active {
-      position: relative;
-    }
-
     #notificationBadge {
       position: absolute;
-      top: 0px;
-      right: 410px;
+      top: -8px; /* 버튼 상단에서 위로 */
+      right: -6px; /* 버튼 오른쪽 끝에서 약간 바깥으로 */
       background-color: red;
       color: white;
-      border-radius: 50%;
+      border-radius: 45%;
       padding: 4px 10px;
       font-size: 12px;
       font-weight: bold;
-      display: none; /* 기본은 숨김! */
+      display: none;
     }
 
   </style>
@@ -114,22 +114,25 @@
 
 <div class="container">
   <ul id="notification-list" class="notification-list">
-    <!-- 알림 데이터가 여기에 추가됨 -->
+    <li th:each="notification : ${notifications}" class="notification-item">
+      <span th:text="${notification.message}"></span>
+    </li>
+    <li th:if="${#lists.isEmpty(notifications)}" class="notification-item text-muted">
+      알림이 없습니다.
+    </li>
   </ul>
 
   <button class="clear-btn" onclick="clearNotifications()">모든 알림 삭제</button>
 </div>
 
-<!-- 네비게이션 바 추가 -->
 <div class="nav-bar">
   <a class="btn nav-btn" role="button" href="/friends">친구 목록</a>
   <a class="btn nav-btn" role="button" href="/rooms">채팅방</a>
-  <!-- 알림 아이콘과 배지 -->
   <div class="nav-btn-wrapper">
-    <a class="btn nav-btn" role="button" href="/notifications">
+    <a class="btn nav-btn active" role="button" href="/notifications">
       알림
+      <span id="notificationBadge" th:text="${#lists.size(notifications)}"></span>
     </a>
-    <span id="notificationBadge">1</span>
   </div>
   <a class="btn nav-btn" role="button"
      th:href="@{/users/{id}(id=${user != null and user.id != null ? user.id : 'test-user'})}">
@@ -137,6 +140,9 @@
   </a>
 </div>
 
+<script th:inline="javascript">
+  let notificationCount = [[${#lists.size(notifications)}]] || 0;
+</script>
 <script src="/js/notification.js"></script>
 
 </body>

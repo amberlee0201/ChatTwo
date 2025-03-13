@@ -1,5 +1,6 @@
 package com.ce.chat2.notification.event;
 
+import com.ce.chat2.notification.controller.NotificationApiController.NotificationMessage;
 import com.ce.chat2.notification.service.NotificationService;
 import com.ce.chat2.notification.event.FriendFollowedEvent;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +22,18 @@ public class NotificationEventListener {
         log.info("📨 친구 추가 이벤트 수신 - from: {}, to: {}",
             event.getFrom().getName(), event.getTo().getName());
 
-        notificationService.sendFriendFollowNotification(event.getFrom(), event.getTo());
-    }
-
-    @EventListener
-    public void handleNotificationEvent(FriendFollowedEvent event) {
-        // 알림 메시지 전송
+        // 메시지 생성
         String message = event.getMessage();
+        if (message == null || message.trim().isEmpty()) {
+            message = event.getFrom().getName() + "님이 친구 요청을 보냈습니다.";
+        }
 
-        // WebSocket을 통해 알림 메시지를 모든 클라이언트에 전송
-        messagingTemplate.convertAndSend("/topic/notification-sub", message);
+        // 알림 저장
+        notificationService.saveNotification(event.getTo().getId(), "친구 추가", message);
 
-        // 추가: 알림 카운트 업데이트
-        messagingTemplate.convertAndSend("/topic/notification-count", 1); // 1씩 증가
+        // WebSocket 메시지 전송
+        messagingTemplate.convertAndSend("/topic/notification-sub", new NotificationMessage(message));
+        messagingTemplate.convertAndSend("/topic/notification-count/" + event.getTo().getId(), 1);
+        log.info("📨 친구 알림 전송 완료: {}", message);
     }
 }

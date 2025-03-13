@@ -48,8 +48,8 @@ public class ApiFollowController {
                 followService.setFollow(userDetails.getUser(), uid);
 
                 // 🔥 친구 추가 알림 전송 (WebSocket)
-                String senderName = userDetails.getUser().getName();
-                notificationController.sendFriendNotification(senderName, uid.toString());
+//                String senderName = userDetails.getUser().getName();
+//                notificationController.sendFriendNotification(senderName, uid.toString());
 
                 return ResponseEntity.ok(ResponseData.SUCCESS_RESPONSE);
         }

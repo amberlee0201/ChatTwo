@@ -16,7 +16,7 @@ public class Participation {
     @Getter(onMethod_ = {@DynamoDbPartitionKey, @DynamoDbAttribute("UserId"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-UserId-index" })})
     private Integer userId;
 
-    @Getter(onMethod_ = {@DynamoDbSortKey, @DynamoDbAttribute("RoomId"), @DynamoDbSecondaryPartitionKey(indexNames = { "RoomId-UserId-index", "RoomId-lastReadChatTime-index" })})
+    @Getter(onMethod_ = {@DynamoDbSortKey, @DynamoDbAttribute("RoomId"), @DynamoDbSecondaryPartitionKey(indexNames = { "RoomId-UserId-index", "RoomId-LastReadChatTime-index" })})
     private String roomId;
 
     @Getter(onMethod_ = {@DynamoDbAttribute("InvitedAt")})
@@ -25,7 +25,7 @@ public class Participation {
     @Getter(onMethod_ = {@DynamoDbAttribute("InvitedBy")})
     private Integer invitedBy;
 
-    @Getter(onMethod_ = {@DynamoDbAttribute("lastReadChatTime"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-lastReadChatTime-index" })})
+    @Getter(onMethod_ = {@DynamoDbAttribute("lastReadChatTime"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-LastReadChatTime-index" })})
     private long lastReadChatTime;
 
     public static Participation of(Integer userId, String roomId, Integer invitedBy) {

@@ -1,104 +1,83 @@
-document.addEventListener("DOMContentLoaded", function () {
-  let notificationCount = 0; // ✅ 전역 변수 선언
+// 📁 /js/notification.js
 
-  // 알림 리스트를 화면에 출력
-  fetch("/api/notifications")
-  .then(response => response.json())
-  .then(data => {
-    notificationCount = data.length;
+if (!window.notificationInitialized) {
+  window.notificationInitialized = true;
+
+  let notificationCount = 0;
+
+  function updateNotificationBadge(count) {
+    const badge = document.getElementById("notificationBadge");
+    if (!badge) return;
+
+    if (count > 0) {
+      badge.style.display = "inline-block";
+      badge.textContent = count;
+      localStorage.setItem("notificationCount", count);
+    } else {
+      badge.style.display = "none";
+      localStorage.setItem("notificationCount", 0);
+    }
+  }
+
+  function addNotificationToList(message) {
+    const list = document.getElementById("notification-list");
+    if (!list) return;
+
+    const empty = list.querySelector(".text-muted");
+    if (empty) empty.remove();
+
+    const item = document.createElement("li");
+    item.className = "notification-item";
+    item.textContent = message;
+    list.prepend(item);
+  }
+
+  function initNotifications() {
+    const saved = parseInt(localStorage.getItem("notificationCount")) || 0;
+    notificationCount = saved;
     updateNotificationBadge(notificationCount);
 
-    data.forEach(notification => {
-      addNotificationToList(notification.message);
-    });
-  })
-  .catch(error => console.error("❌ 알림 개수 불러오기 실패:", error));
+    const socket = new SockJS("/notification-connect");
+    const stompClient = Stomp.over(socket);
 
-  // WebSocket 연결
-  const socket = new SockJS("/notification-connect");
-  const stompClient = Stomp.over(socket);
+    stompClient.connect({}, function (frame) {
+      console.log("✅ STOMP 연결 완료", frame);
 
-  stompClient.connect({}, function (frame) {
-    console.log("✅ STOMP 연결 성공:", frame);
-
-    // 실시간 알림 수신
-    stompClient.subscribe("/topic/notification-sub", function (message) {
-      const notification = JSON.parse(message.body);
-      console.log("📩 받은 알림:", notification.message);
-
-      // 메시지 출력은 notification-list가 있을 때만
-      const notificationList = document.getElementById("notification-list");
-      if (notificationList) {
+      stompClient.subscribe("/topic/notification-sub", function (msg) {
+        if (!msg.body) return;
+        const notification = JSON.parse(msg.body);
         addNotificationToList(notification.message);
-      }
+        notificationCount++;
+        updateNotificationBadge(notificationCount);
+      });
 
-      // 실시간 알림 카운트 수신
-      stompClient.subscribe("/topic/notification-count", function (message) {
-        console.log("✅ [notification-count] 메시지 도착:", message.body);
-        const count = parseInt(message.body);
+      stompClient.subscribe("/topic/notification-count", function (msg) {
+        const count = parseInt(msg.body);
         if (!isNaN(count)) {
+          notificationCount = count;
           updateNotificationBadge(count);
-        } else {
-          console.warn("⚠️ 알림 수가 숫자가 아님:", message.body);
         }
       });
+
+      // ✅ 알림 삭제 함수 전역 등록
+      window.clearNotifications = function () {
+        const list = document.getElementById("notification-list");
+        if (list) {
+          list.innerHTML = '<li class="notification-item text-muted">알림이 없습니다.</li>';
+        }
+        notificationCount = 0;
+        updateNotificationBadge(0);
+      };
+
+      window.notificationCount = notificationCount;
+      window.updateNotificationBadge = updateNotificationBadge;
     });
+  }
 
-    // ✅ 알림 목록에 추가
-    function addNotificationToList(message) {
-      const notificationList = document.getElementById("notification-list");
-      if (!notificationList) {
-        console.warn("⚠️ 이 페이지엔 notification-list가 없어요. 리스트 추가 스킵!");
-        return;
-      }
-
-      const newItem = document.createElement("li");
-      newItem.classList.add("notification-item");
-      newItem.textContent = message;
-      notificationList.prepend(newItem);
-    }
-
-    // ✅ 알림 전체 삭제
-    window.clearNotifications = function () {
-      const notificationList = document.getElementById("notification-list");
-      if (notificationList) {
-        notificationList.innerHTML = "";
-      }
-      notificationCount = 0;
-      updateNotificationBadge(notificationCount);
-    };
-
-    // ✅ 알림 배지 업데이트
-    function updateNotificationBadge(count) {
-      const badge = document.getElementById("notificationBadge");
-      if (badge) {
-        if (count > 0) {
-          badge.style.display = "inline-block";
-          badge.textContent = count;
-        } else {
-          badge.style.display = "none";
-        }
-      }
-    }
-
-    // (선택) 친구 알림 수동 전송 (테스트용)
-    window.sendFriendNotification = function (sender, receiver) {
-      fetch("/notifications/friend-added", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `sender=${encodeURIComponent(
-            sender)}&receiver=${encodeURIComponent(receiver)}`
-      })
-      .then(response => {
-        if (response.ok) {
-          console.log("✅ 친구 추가 알림 전송 성공");
-        } else {
-          console.error("🚨 친구 추가 알림 전송 실패");
-        }
-      })
-      .catch(error => console.error("🚨 서버 오류:", error));
-    };
-  })
-});
+  // DOMContentLoaded 대응
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initNotifications);
+  } else {
+    initNotifications();
+  }
+}

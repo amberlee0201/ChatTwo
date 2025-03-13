@@ -7,5 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class NotificationResponse {
     private String message;
+    private String id;
 
 }
