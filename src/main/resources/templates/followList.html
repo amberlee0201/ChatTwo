@@ -6,20 +6,8 @@
     <title>친구 목록/친구 추가</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> 
-    <link rel="stylesheet" as="style" crossorigin
-    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css" />   
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #0C356A;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        .btn {
-            font-family: Arial, sans-serif;
-        }
         .color-db {
             background-color: #0C356A !important;
         }
@@ -32,94 +20,60 @@
         .color-ly {
             background-color: #fff0ce !important;
         }
-        .radius-10 {
-            border-radius: 10px;
-        }
-        .container {
-            width: 600px;
-            margin: 20px auto;
-            background-color: white;
-            border: 2px solid #0174BE;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-        }
         .profile-image {
             width: 40px; height: 40px; border-radius: 50%;
         }
 
         .width-180 {
-            width: 140px;
+            width: 18%;
         }
         .width-360 {
-            width: 260px;
+            width: 60%;
         }   
         .header {
             color: #FFC436;
             font-size: 24px;
             margin-top: 20px;
         }     
-        .nav-bar {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px;
-            background-color: #0174BE;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-
-        .nav-btn {
-            background-color: #FFF0CE;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 5px;
-        }
-
-        .nav-btn.active {
-            background-color: #FFC436;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .padding-10 {
-            padding: 10px;
-        }
     </style>
 </head>
-<body class="color-db">
+<body class="color-db text-center">
     <h2 class="header">친구 목록/추가</h2>
-    <div class="container padding-10 radius-10 text-center position-absolute top-50 start-50 translate-middle">
-        <div>
-            <div class="color-ly radius-10">
-                    <ul><li class="d-flex justify-content-between align-items-center padding-10">
-                        <div class="width-180 color-ly">친구 추가</span></div>
-                        <div class="width-360 color-ly">
-                            <input type="text" id="name" class="form-control" placeholder="친구를 맺을 사용자의 이름을 입력하세요">
-                        </div>
-                        <div class="color-ly">
-                            <a class="btn btn-primary color-lb" role="button" id="search">검색</a>
-                        </div>
-                    </li></ul>
-                    <ul id="usersList">
-                    </ul>
-            </div>
-
-            <div class="border-bottom border-dark mt-1 mb-1"></div>
-            <ul id="friendsList">
+    <div class="card my-3 py-3 mx-auto" style="max-width: 500px;">
+        <div class="color-ly">
+            <ul class="list-group">
+                <li class="d-flex justify-content-between align-items-center p-3">
+                    <div class="width-180 color-ly">친구 추가</div>
+                    <div class="width-360 color-ly">
+                        <input type="text" id="name" class="form-control" placeholder="친구를 맺을 사용자의 이름을 입력하세요">
+                    </div>
+                    <div class="color-ly">
+                        <a class="btn btn-primary color-lb" role="button" id="search">검색</a>
+                    </div>
+                </li>
             </ul>
-            <a class="btn btn-primary color-lb" role="button" href="searchFriend">친구 검색</a>
+            <ul id="usersList" class="list-group">
+            </ul>
+        </div>
+
+        <div class="border-bottom border-dark mt-1 mb-1"></div>
+        <div class="card-body p-0">
+            <ul id="friendsList" class="list-group">
+            </ul>
+            <a class="btn btn-primary color-lb w-25 mx-auto" role="button" href="searchFriend">친구 검색</a>
         </div>
     </div>
-    <div class="nav-bar">
-        <a class="btn nav-btn active" role="button" href="/friends">친구 목록</a>
-        <a class="btn nav-btn" role="button" href="/rooms">채팅방</a>
-        <button class="nav-btn">기타</button>
-        <button class="nav-btn" th:onclick="'location.href=\'/users/' + ${user.id} + '\''">내 프로필</button>
+    <div class="my-5">
     </div>
+    <nav class="navbar fixed-bottom navbar-expand bg-primary">
+        <div class="container-fluid justify-content-around">
+            <a class="btn btn-warning active" role="button" href="/friends">친구 목록</a>
+            <a class="btn btn-secondary" role="button" href="/rooms">채팅방</a>
+            <button class="btn btn-secondary">기타</button>
+            <a class="btn btn-secondary" th:href="'/users/' + ${user.id}">내 프로필</a>
+        </div>
+    </nav>
+
     <script th:inline="javascript">
         window.onload = function() {
 
@@ -131,7 +85,7 @@
                 data.forEach(friend => {
                     const li = document.createElement('li');
                     li.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.to.id 값을 설정
-                    li.className = 'd-flex justify-content-between align-items-center padding-10';
+                    li.className = 'd-flex justify-content-between align-items-center p-3';
                     console.log(friend);
                     li.innerHTML = `
                         <div class="width-180"><img src="${friend.image}" class="profile-image" ></div>
@@ -180,7 +134,7 @@
 
                         const li = document.createElement('li');
                         li.setAttribute('data-id', friend.id); // tr의 data-id 속성에 friend.to.id 값을 설정
-                        li.className = 'd-flex justify-content-between align-items-center padding-10';
+                        li.className = 'd-flex justify-content-between align-items-center p-3';
                         li.innerHTML = `
                             <div class="width-180"><img src="${friend.image}" class="profile-image" ></div>
                             <div class="width-360 profile-name">${friend.name}</div>
@@ -220,7 +174,7 @@
                     const friendsList = document.getElementById('friendsList');
                     const li = document.createElement('li');
                     li.setAttribute('data-id', id); // tr의 data-id 속성에 friend.to.id 값을 설정
-                    li.className = 'd-flex justify-content-between align-items-center padding-10';
+                    li.className = 'd-flex justify-content-between align-items-center p-3';
                     li.innerHTML = `
                         <div class="width-180"><img src="${image}" class="profile-image" ></div>
                         <div class="width-360 profile-name">${name}</div>
