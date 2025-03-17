@@ -57,7 +57,20 @@ public class RoomService {
         String latestMessage = "[System] 새로운 채팅방이 생성되었습니다.";
 
         Room newRoom = roomRepository.save(Room.of(creator, latestMessage));
-        participationRepository.batchSave(invite(allMembersId, newRoom.getRoomId(), creator.getId()));
+        List<Participation> invitedParticipants = invite(allMembersId, newRoom.getRoomId(), creatorId);
+// ✅ 중복 userId 제거 (LinkedHashMap으로 순서 보존 + 유일 key 보장)
+        List<Participation> deduplicated = new ArrayList<>(
+            invitedParticipants.stream()
+                .collect(Collectors.toMap(
+                    Participation::getUserId,  // userId 기준
+                    p -> p,
+                    (existing, replacement) -> existing, // 중복일 때 기존 값 유지
+                    LinkedHashMap::new
+                )).values()
+        );
+       // participationRepository.batchSave(invite(allMembersId, newRoom.getRoomId(), creator.getId()));
+        participationRepository.batchSave(deduplicated); // ✅ 중복 제거된 리스트 저장
+
 
         NewRoomResponse response = NewRoomResponse.of(newRoom.getRoomId(), allMembersId);
         roomWebSocketService.notifyUsersAboutNewRoom(response);

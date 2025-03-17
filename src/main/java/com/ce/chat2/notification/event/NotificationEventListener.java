@@ -1,8 +1,7 @@
 package com.ce.chat2.notification.event;
 
-import com.ce.chat2.notification.controller.NotificationApiController.NotificationMessage;
 import com.ce.chat2.notification.service.NotificationService;
-import com.ce.chat2.notification.event.FriendFollowedEvent;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -19,21 +18,23 @@ public class NotificationEventListener {
 
     @EventListener
     public void handleFriendFollowed(FriendFollowedEvent event) {
-        log.info("📨 친구 추가 이벤트 수신 - from: {}, to: {}",
-            event.getFrom().getName(), event.getTo().getName());
-
-        // 메시지 생성
+        String receiverId = String.valueOf(event.getTo().getId());
         String message = event.getMessage();
-        if (message == null || message.trim().isEmpty()) {
-            message = event.getFrom().getName() + "님이 친구 요청을 보냈습니다.";
-        }
+        String subject = "친구 추가 알림";
 
-        // 알림 저장
-        notificationService.saveNotification(event.getTo().getId(), "친구 추가", message);
+        // ✅ 알림 저장
+        notificationService.saveNotification(receiverId, subject, message);
 
-        // WebSocket 메시지 전송
-        messagingTemplate.convertAndSend("/topic/notification-sub", new NotificationMessage(message));
-        messagingTemplate.convertAndSend("/topic/notification-count/" + event.getTo().getId(), 1);
-        log.info("📨 친구 알림 전송 완료: {}", message);
+        // ✅ 삭제되지 않은 알림 개수 조회
+        int unreadCount = notificationService.getActiveNotificationCount(receiverId);
+
+        // ✅ WebSocket 실시간 전송 (알림 카운트 + 알림 새로고침 트리거용)
+        Map<String, Object> payload = Map.of(
+            "message", message,
+            "count", unreadCount
+        );
+
+        messagingTemplate.convertAndSend("/topic/notification-sub/" + receiverId, payload);
+
     }
 }

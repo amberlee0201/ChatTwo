@@ -1,57 +1,50 @@
 package com.ce.chat2.notification.service;
 
 import com.ce.chat2.notification.entity.Notification;
-import com.ce.chat2.notification.entity.NotificationHide;
-import com.ce.chat2.notification.repository.NotificationHideRepository;
 import com.ce.chat2.notification.repository.NotificationRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Slf4j
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final NotificationHideRepository notificationHideRepository;
 
-    public void saveNotification(Integer receiverId, String subject, String message) {
-        Notification notification = Notification.builder()
-            .receiverId(receiverId)
-            .subject(subject)
-            .message(message)
-            .createdAt(LocalDateTime.now())
-            .build();
+    public void saveNotification(String userId, String subject, String message) {
+        Notification notification = Notification.of(userId, subject, message);
         notificationRepository.save(notification);
     }
 
-    public List<Notification> getNotifications(Integer receiverId) {
-        Set<Integer> hiddenIds = notificationHideRepository.findNotificationIdsByUserId(receiverId);
-
-        if (hiddenIds == null || hiddenIds.isEmpty()) {
-            return notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiverId);
-        }
-
-        return notificationRepository.findByReceiverIdAndIdNotInOrderByCreatedAtDesc(receiverId, hiddenIds);
+    public List<Notification> getNotifications(String userId) {
+        return notificationRepository.findByUserId(userId).stream()
+            .filter(n -> !Boolean.TRUE.equals(n.getIsDeleted()))
+            .sorted(Comparator.comparing(Notification::getCreatedAt).reversed())
+            .collect(Collectors.toList());
     }
 
-    public void hideAllByUserId(Integer receiverId) {
-        log.info("🙈 알림 숨김 처리 시작 - receiverId: {}", receiverId);
+    public void hideAllByUserId(String userId) {
+        List<Notification> notifications = notificationRepository.findAllByUserId(userId); // ✅ 변경
 
-        List<Notification> notifications = notificationRepository.findByReceiverIdOrderByCreatedAtDesc(receiverId);
+        List<Notification> toUpdate = notifications.stream()
+            .filter(n -> !Boolean.TRUE.equals(n.getIsDeleted()))
+            .peek(n -> {
+                n.setIsDeleted(true);
+                n.setDeletedAt(Instant.now());
+            })
+            .collect(Collectors.toList());
 
-        List<NotificationHide> hides = notifications.stream()
-            .map(notification -> NotificationHide.builder()
-                .userId(receiverId)
-                .notificationId(notification.getId())
-                .hiddenAt(LocalDateTime.now())
-                .build())
-            .toList();
+        notificationRepository.saveAll(toUpdate);
+    }
 
-        notificationHideRepository.saveAll(hides);
+    public int getActiveNotificationCount(String userId) {
+        return (int) notificationRepository.findByUserId(userId).stream()
+            .filter(n -> !Boolean.TRUE.equals(n.getIsDeleted()))
+            .count();
     }
 }

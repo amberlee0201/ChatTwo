@@ -105,6 +105,12 @@
         }
     </style>
 </head>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.userId = [[${user.id}]];
+    /*]]>*/
+</script>
+</head>
 <body class="color-db">
     <h2 class="header">친구 목록/추가</h2>
     <div class="container padding-10 radius-10 text-center position-absolute top-50 start-50 translate-middle">

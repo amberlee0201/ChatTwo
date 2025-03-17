@@ -40,18 +40,39 @@ if (!window.notificationInitialized) {
     const socket = new SockJS("/notification-connect");
     const stompClient = Stomp.over(socket);
 
+    // ✅ window.userId가 있어야 작동함 (템플릿에서 설정 필요)
+    const userId = window.userId;
+    if (!userId) {
+      console.warn("❗ userId가 정의되지 않았습니다.");
+      return;
+    }
+
     stompClient.connect({}, function (frame) {
       console.log("✅ STOMP 연결 완료", frame);
-
-      stompClient.subscribe("/topic/notification-sub", function (msg) {
-        if (!msg.body) return;
-        const notification = JSON.parse(msg.body);
-        addNotificationToList(notification.message);
-        notificationCount++;
-        updateNotificationBadge(notificationCount);
+      fetch("/notifications/data")
+      .then(res => res.json())
+      .then(data => {
+        const activeCount = data.length;
+        notificationCount = activeCount;
+        updateNotificationBadge(activeCount);
+      })
+      .catch(err => {
+        console.error("🚨 알림 초기 로드 실패:", err);
       });
 
-      stompClient.subscribe("/topic/notification-count", function (msg) {
+      stompClient.subscribe("/topic/notification-sub/" + userId, function (msg) {
+        if (!msg.body) return;
+        const notification = JSON.parse(msg.body);
+        if (notification.message) {
+          addNotificationToList(notification.message);
+        }
+        if (!isNaN(notification.count)) {
+          notificationCount = notification.count;
+          updateNotificationBadge(notificationCount);
+        }
+      });
+
+      stompClient.subscribe("/topic/notification-count/" + userId, function (msg) {
         const count = parseInt(msg.body);
         if (!isNaN(count)) {
           notificationCount = count;
@@ -59,7 +80,6 @@ if (!window.notificationInitialized) {
         }
       });
 
-      // ✅ 알림 삭제 함수 전역 등록
       window.clearNotifications = function () {
         const list = document.getElementById("notification-list");
         if (list) {
@@ -74,31 +94,27 @@ if (!window.notificationInitialized) {
     });
   }
 
-  // ✅ 알림 전체 삭제 버튼 클릭 처리 추가
   document.addEventListener("DOMContentLoaded", function () {
     const deleteAllBtn = document.getElementById("deleteAllBtn");
     if (deleteAllBtn) {
       deleteAllBtn.addEventListener("click", function () {
-        fetch("/api/notifications/all", {
-          method: "DELETE",
-        })
+        fetch("/notifications", { method: "DELETE" })
         .then((res) => {
           if (res.ok) {
-            window.clearNotifications(); // ✅ 프론트에서도 제거
-            alert("모든 알림을 숨김 처리했습니다."); // ✅ 변경됨
+            window.clearNotifications();
+            alert("모든 알림을 숨김 처리했습니다.");
           } else {
-            alert("알림 숨김 처리 실패"); // ✅ 변경됨
+            alert("알림 숨김 처리 실패");
           }
         })
         .catch((err) => {
-          console.error("🚨 삭제 요청 실패:", err); // ✅ 변경됨
-          alert("에러 발생"); // ✅ 변경됨
+          console.error("🚨 삭제 요청 실패:", err);
+          alert("에러 발생");
         });
       });
     }
-  }); // ✅ 변경됨
+  });
 
-  // DOMContentLoaded 대응
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initNotifications);
   } else {

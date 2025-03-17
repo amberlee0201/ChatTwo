@@ -11,6 +11,6 @@ public class FriendFollowedEvent {
     private final User to;
 
     public String getMessage() {
-        return "";
+        return from.getName() + "님이 친구 요청을 보냈습니다.";
     }
 }

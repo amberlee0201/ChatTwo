@@ -1,50 +1,66 @@
+// file path: com/ce/chat2/notification/entity/Notification.java
+
 package com.ce.chat2.notification.entity;
 
-import jakarta.persistence.*;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import lombok.*;
-import java.time.LocalDateTime;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
-@Entity
-@Table(name = "notification")
+import java.time.Instant;
+import java.util.UUID;
+
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@DynamoDbBean
 public class Notification {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Getter(onMethod_ = {@DynamoDbPartitionKey, @DynamoDbAttribute("UserId")})
+    private String userId;
 
-    @Column(name = "receiver_id", nullable = false)
-    private Integer receiverId;
+    @Getter(onMethod_ = {@DynamoDbSortKey, @DynamoDbAttribute("CreatedAt")})
+    private Long createdAt;
 
-    @Column(name = "notification_subject", nullable = false)
+    @Getter(onMethod_ = {@DynamoDbAttribute("NotificationId")})
+    private String notificationId;
+
+    @Getter(onMethod_ = {@DynamoDbAttribute("Subject")})
     private String subject;
 
-    @Column(name = "notification_message", nullable = false)
+    @Getter(onMethod_ = {@DynamoDbAttribute("Message")})
     private String message;
 
-    @Column(name = "notification_created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @Getter(onMethod_ = {@DynamoDbAttribute("IsDeleted")})
+    private Boolean isDeleted;
 
-    @Column(name = "notification_updated_at")
-    private LocalDateTime updatedAt;
+    @Getter(onMethod_ = {@DynamoDbAttribute("DeletedAt")})
+    private Instant deletedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+    @DynamoDbAttribute("IsDeleted")
+    public void setIsDeleted(Boolean isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+    @DynamoDbAttribute("DeletedAt")
+    public void setDeletedAt(Instant deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public static Notification of(String userId, String subject, String message) {
+        Instant now = Instant.now();
+        return Notification.builder()
+            .userId(userId)
+            .createdAt(now.toEpochMilli())
+            .notificationId(UUID.randomUUID().toString())
+            .subject(subject)
+            .message(message)
+            .isDeleted(false)
+            .build();
+    }
+
+    public void softDelete() {
+        this.isDeleted = true;
+        this.deletedAt = Instant.now();
     }
 }

@@ -142,6 +142,7 @@
 
 <script th:inline="javascript">
   let notificationCount = [[${#lists.size(notifications)}]] || 0;
+  window.userId = [[${user.id}]];
 </script>
 <script src="/js/notification.js"></script>
 
