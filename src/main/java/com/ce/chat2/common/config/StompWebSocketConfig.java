@@ -21,15 +21,11 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
 
         registry.addEndpoint("/chat-connect")
-            .setAllowedOrigins(url)
-            .withSockJS();
+            .setAllowedOrigins(url);
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-//        registry.setApplicationDestinationPrefixes("/publish", "/app");
-//        registry.enableSimpleBroker("/topic");
-
         registry.setApplicationDestinationPrefixes("/room-pub", "/chat-pub");
         registry.enableSimpleBroker("/room-sub", "/chat-sub");
     }
