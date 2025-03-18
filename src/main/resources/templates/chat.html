@@ -311,7 +311,8 @@
     <script th:inline="javascript">
       // 소켓 연결
       const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/chat-connect';
-      const socket = new SockJS(url);
+      //const socket = new SockJS(url);
+      const socket = new WebSocket(url);
       const stompClient = Stomp.over(socket);
 
       // 메시지 컨테이너를 항상 최신 메시지가 보이도록 스크롤
