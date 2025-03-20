@@ -1,6 +1,7 @@
 package com.ce.chat2.room.service;
 
 
+import com.ce.chat2.participation.repository.ParticipationRepository;
 import com.ce.chat2.room.dto.response.NewRoomResponse;
 import com.ce.chat2.room.dto.response.RoomListResponse;
 import com.ce.chat2.room.dto.response.RoomResponse;
@@ -11,6 +12,8 @@ import com.ce.chat2.room.listener.RoomMessageListener;
 import com.ce.chat2.room.repository.RoomRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +34,7 @@ public class RoomWebSocketService {
     private final ParticipationMessageListener participationMessageListener;
     private final RoomMessageListener roomMessageListener;
     private final ObjectMapper objectMapper;
+    private final ParticipationRepository participationRepository;
 
     @Value("${websocket.destination.prefix.room}")
     private String roomDestPrefix;
@@ -74,6 +78,17 @@ public class RoomWebSocketService {
             roomMessageListener.publish(message);
         } catch (JsonProcessingException e) {
             log.error("Error converting room update to JSON", e);
+        }
+    }
+
+    public void sendUpdatedRoom(RoomResponse roomResponse) {
+        Set<Integer> userIds = participationRepository.findUserIdsByRoomId(roomResponse.getRoomId());
+
+        for (Integer userId : userIds) {
+            messagingTemplate.convertAndSend(
+                "/room-sub/room/" + roomResponse.getRoomId(),
+                roomResponse
+            );
         }
     }
 }

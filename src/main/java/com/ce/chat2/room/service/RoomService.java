@@ -14,6 +14,7 @@ import com.ce.chat2.user.dto.UserListResponse;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.repository.UserRepository;
 import com.ce.chat2.room.exception.NoMembersFoundException;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -137,5 +138,22 @@ public class RoomService {
             throw new NoMembersFoundException();
         }
         return responses;
+    }
+
+    public void updateLatestMessage(String roomId, String message, Instant timestamp) {
+        // 채팅방을 DB에서 조회
+        Room room = roomRepository.findRoomById(roomId)
+            .orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        // 최신 메시지와 타임스탬프 업데이트
+        room.setLatestMessage(message);
+        room.setLatestTimestamp(timestamp);
+
+        // Room 객체 저장
+        Room updatedRoom = roomRepository.update(room);
+
+        // WebSocket으로 구독 중인 사용자들에게 업데이트된 채팅방 정보 전송
+        RoomResponse roomResponse = RoomResponse.of(updatedRoom);
+        roomWebSocketService.sendUpdatedRoom(roomResponse);  // 여기서 WebSocket으로 전송
     }
 }
