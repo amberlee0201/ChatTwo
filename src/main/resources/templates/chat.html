@@ -280,7 +280,7 @@
         <a href="/rooms" class="home-btn">홈으로</a>
       </div>
 
-      <div class="user-list-content">
+      <div class="user-list-content" id="participantList">
         <!-- 참여자 목록 렌더링-->
         <div th:each="participant : ${participants}" class="user-item">
           <img th:if="${participant.image}" th:src="${participant.image}" alt="Profile" class="participant-avatar">
@@ -311,7 +311,8 @@
     <script th:inline="javascript">
       // 소켓 연결
       const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/chat-connect';
-      const socket = new SockJS(url);
+      //const socket = new SockJS(url);
+      const socket = new WebSocket(url);
       const stompClient = Stomp.over(socket);
 
       // 메시지 컨테이너를 항상 최신 메시지가 보이도록 스크롤
@@ -327,6 +328,39 @@
       var chats = /*[[${chatHistory}]]*/ [];
       var maxChatTime = (chats && chats.length > 0) ? chats[chats.length - 1].timestamp : 0;
 
+      // 서버에서 참여자 목록 가져오기
+      function fetchParticipants() {
+        fetch(`/api/rooms/${roomId}/participants`)
+          .then(response => response.json())
+          .then(data => {
+            updateParticipants(data);
+          });
+      }
+
+      // 참여자 목록 표시하기
+      function updateParticipants(participants) {
+        const participantList = document.getElementById('participantList');
+        participantList.innerHTML = '';
+
+        participants.forEach(participant => {
+          const participantItem = document.createElement('div');
+          participantItem.className = 'user-item';
+
+          const avatar = document.createElement('img');
+          avatar.className = 'participant-avatar';
+          avatar.src = participant.image ? participant.image : '/default-profile.png';
+          avatar.alt = 'Profile';
+
+          const name = document.createElement('span');
+          name.className = 'participant-name';
+          name.textContent = participant.name;
+
+          participantItem.appendChild(avatar);
+          participantItem.appendChild(name);
+          participantList.appendChild(participantItem);
+        });
+      }
+      
       // 메시지 렌더링 함수
       function renderMessage(message) {
         const isMyMessage = message.userId === user.id;
@@ -407,6 +441,7 @@
       // 서버에서 받은 메시지 리스트 렌더링
       window.onload = function () {
         scrollToBottom();
+        fetchParticipants();
 
         // 메시지 리스트 렌더링
         chats.reverse().forEach(c => {
@@ -515,6 +550,7 @@
       const chatMain = document.getElementById('chatMain');
 
       toggleSidebar.addEventListener('click', function() {
+        fetchParticipants();
         userList.classList.toggle('hidden');
         chatMain.classList.toggle('full-width');
       });
