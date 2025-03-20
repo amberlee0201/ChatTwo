@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
@@ -20,6 +21,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 @NoArgsConstructor
 @AllArgsConstructor
 @DynamoDbBean
+@ToString
 public class Chat {
 
     @Getter(onMethod_ = {@DynamoDbPartitionKey, @DynamoDbAttribute("RoomId"), @DynamoDbSecondaryPartitionKey(indexNames = { "RoomId-CreatedAt-index" })})

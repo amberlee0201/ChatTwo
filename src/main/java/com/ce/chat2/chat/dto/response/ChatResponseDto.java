@@ -22,7 +22,6 @@ public class ChatResponseDto {
     private String sendAt;
     private long timestamp;
 
-
     public static ChatResponseDto of(Chat chat, User sender, int readCnt){
         return ChatResponseDto.builder()
             .userId(sender.getId())
