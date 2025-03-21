@@ -3,7 +3,6 @@ package com.ce.chat2.notification.dto;
 import com.ce.chat2.notification.entity.Notification;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
