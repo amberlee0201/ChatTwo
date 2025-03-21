@@ -30,13 +30,12 @@ public class ChatRepository {
         this.chatTableGsiWithCreatedAt = chatTable.index(chatTableGsiWithCreatedAt);
     }
     public Optional<Page<Chat>> findAllByRoomIdSortByCreatedAtDesc(String roomId, Map<String, AttributeValue> lastKey) {
-        SdkIterable<Page<Chat>> res = chatTableGsiWithCreatedAt.query(r -> r
+        return chatTableGsiWithCreatedAt.query(r -> r
             .queryConditional(QueryConditional.keyEqualTo(k -> k.partitionValue(roomId)))
             .scanIndexForward(false) // 내림차순 정렬 (최신순)
             .limit(20)
             .exclusiveStartKey(lastKey)
-        );
-        return res.stream().findFirst();
+        ).stream().findFirst();
     }
     public Optional<Page<Chat>> findAllByRoomIdSortByCreatedAtDesc(String roomId) {
         return findAllByRoomIdSortByCreatedAtDesc(roomId, null);
