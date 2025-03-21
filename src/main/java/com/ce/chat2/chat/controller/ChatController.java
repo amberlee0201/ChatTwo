@@ -52,7 +52,7 @@ public class ChatController {
         ObjectMapper objectMapper = new ObjectMapper();
         String req = objectMapper.writeValueAsString(chatRequestDto);
 
-        redisChatPubSubService.publish("room"+roomId, req);
+        redisChatPubSubService.publish("chat"+roomId, req);
     }
 
     @MessageMapping("/count/{roomId}")

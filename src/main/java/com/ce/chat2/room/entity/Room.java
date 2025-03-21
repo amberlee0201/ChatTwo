@@ -62,10 +62,13 @@ public class Room {
                 .build();
     }
 
-    public static Room from(Chat chat){
+    public static Room from(Room room, Chat chat){
         return Room.builder()
-                .roomId(chat.getRoomId())
+                .roomId(room.getRoomId())
+                .roomName(room.getRoomName())
                 .latestMessage(chat.getContent())
+                .createdAt(room.getCreatedAt())
+                .createdBy(room.getCreatedBy())
                 .build();
     }
 
