@@ -29,12 +29,8 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setAllowedOrigins(url) //.setAllowedOriginPatterns("*")
                 .withSockJS();
 
-        registry.addEndpoint("/notification-connect") // 알림을 위한 새로운 웹소켓 엔드포인트 추가
-                .setAllowedOrigins(url) // allowedOrigins 대신 allowedOriginPatterns 사용
-                .withSockJS();
-
-        registry.addEndpoint("/notification-connect-sockjs")// allowedOrigins 대신 allowedOriginPatterns 사용
-                .setAllowedOrigins(url) //.setAllowedOriginPatterns("*")
+        registry.addEndpoint("/notification-connect")
+                .setAllowedOrigins(url)  // 또는 .setAllowedOriginPatterns("*")
                 .withSockJS();
 
         registry.addEndpoint("/chat-connect")
