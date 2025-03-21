@@ -259,7 +259,30 @@
         display: flex;
         flex-direction: column;
       }
-
+      .loading-indicator {
+        text-align: center;
+        padding: 1rem;
+        color: #0C356A;
+        font-size: 0.9rem;
+        display: none;
+      }
+      .loading-indicator.visible {
+        display: block;
+      }
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(1, 116, 190, 0.3);
+        border-radius: 50%;
+        border-top-color: #0174BE;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
       @media (max-width: 768px) {
         .user-list {
           width: 200px;
@@ -297,6 +320,10 @@
       </button>
 
       <div class="chat-messages" id="messageContainer">
+        <div id="loadingIndicator" class="loading-indicator">
+          <div class="spinner"></div>
+          <span>이전 메시지 불러오는 중...</span>
+        </div>
       </div>
 
       <div class="chat-input">
@@ -311,7 +338,8 @@
     <script th:inline="javascript">
       // 소켓 연결
       const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/chat-connect';
-      const socket = new SockJS(url);
+      //const socket = new SockJS(url);
+      const socket = new WebSocket(url);
       const stompClient = Stomp.over(socket);
 
       // 메시지 컨테이너를 항상 최신 메시지가 보이도록 스크롤
@@ -327,41 +355,16 @@
       var chats = /*[[${chatHistory}]]*/ [];
       var maxChatTime = (chats && chats.length > 0) ? chats[chats.length - 1].timestamp : 0;
 
-      // 서버에서 참여자 목록 가져오기
-      function fetchParticipants() {
-        fetch(`/api/rooms/${roomId}/participants`)
-          .then(response => response.json())
-          .then(data => {
-            updateParticipants(data);
-          });
-      }
+      //pagination
+      var currentPage = 1;
+      var isLoading = false;
+      var hasMoreMessages = true;
+      var lastEvaluatedKey = /*[[${lastEvaluatedKey}]]*/ null;
+      const PAGE_SIZE = 20;
+      const loadingIndicator = document.getElementById('loadingIndicator');
 
-      // 참여자 목록 표시하기
-      function updateParticipants(participants) {
-        const participantList = document.getElementById('participantList');
-        participantList.innerHTML = '';
-
-        participants.forEach(participant => {
-          const participantItem = document.createElement('div');
-          participantItem.className = 'user-item';
-
-          const avatar = document.createElement('img');
-          avatar.className = 'participant-avatar';
-          avatar.src = participant.image ? participant.image : '/default-profile.png';
-          avatar.alt = 'Profile';
-
-          const name = document.createElement('span');
-          name.className = 'participant-name';
-          name.textContent = participant.name;
-
-          participantItem.appendChild(avatar);
-          participantItem.appendChild(name);
-          participantList.appendChild(participantItem);
-        });
-      }
-      
-      // 메시지 렌더링 함수
-      function renderMessage(message) {
+      // 메시지 요소 생성 공통 함수
+      function createMessageElement(message) {
         const isMyMessage = message.userId === user.id;
 
         // 메시지 래퍼 생성
@@ -378,7 +381,7 @@
           senderInfo.className = 'message-sender-info';
 
           const avatar = document.createElement('img');
-          avatar.src = message.senderImage;
+          avatar.src = message.senderImage || '/default-profile.png';
           avatar.alt = 'Profile';
           avatar.className = 'sender-avatar';
 
@@ -432,9 +435,132 @@
           messageWrapper.appendChild(readCountElement);
         }
 
-        // 메시지 래퍼를 컨테이너에 추가
-        messageContainer.appendChild(messageWrapper);
+        return messageWrapper;
+      }
+
+      // 메시지 렌더링 함수 (맨 아래에 추가)
+      function renderMessage(message) {
+        const messageElement = createMessageElement(message);
+        messageContainer.appendChild(messageElement);
         scrollToBottom();
+      }
+
+      // 메시지를 맨 위에 추가하는 함수
+      function prependMessage(message) {
+        const messageElement = createMessageElement(message);
+        messageContainer.insertBefore(messageElement, loadingIndicator.nextSibling);
+      }
+
+      //이전 메세지 조회
+      function fetchPreviousMessages() {
+        if (isLoading || !hasMoreMessages) return;
+
+        isLoading = true;
+        loadingIndicator.classList.add('visible');
+
+        // 현재 스크롤 위치 저장
+        const scrollHeight = messageContainer.scrollHeight;
+        fetch(`/api/chats`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            roomId: roomId,
+            lastKey: lastEvaluatedKey
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          // 응답에서 채팅 목록과 마지막 키 추출
+          const chatList = data.chatResponseDtoList;
+          lastEvaluatedKey = data.lastEvaluatedKey;
+
+          // 더 이상 메시지가 없는 경우
+          if (!chatList || chatList.length === 0) {
+            hasMoreMessages = false;
+            loadingIndicator.textContent = '더 이상 메시지가 없습니다.';
+            setTimeout(() => {
+              loadingIndicator.classList.remove('visible');
+            }, 2000);
+            return;
+          }
+
+          // 마지막 키가 없으면 더 이상 메시지가 없음을 의미
+          if (!lastEvaluatedKey) {
+            hasMoreMessages = false;
+          }
+
+          // 메시지를 최신순으로 정렬하고 역순으로 변경
+          const sortedChats = [...chatList].sort((a, b) => a.timestamp - b.timestamp).reverse();
+
+          // 메시지를 맨 위에 추가
+          sortedChats.forEach(chat => {
+            prependMessage({
+              userId: chat.userId,
+              senderName: chat.senderName,
+              senderImage: chat.senderImage || '/default-profile.png',
+              content: chat.content,
+              readCnt: chat.readCnt,
+              sendAt: chat.sendAt,
+              timestamp: chat.timestamp
+            });
+          });
+
+          currentPage++;
+
+          // 스크롤 위치 유지
+          const newScrollHeight = messageContainer.scrollHeight;
+          messageContainer.scrollTop = newScrollHeight - scrollHeight;
+        })
+        .catch(error => {
+          console.error("이전 메시지 로딩 중 오류 발생:", error);
+        })
+        .finally(() => {
+          isLoading = false;
+          loadingIndicator.classList.remove('visible');
+        });
+      }
+
+      // 스크롤 이벤트 리스너 추가
+      messageContainer.addEventListener('scroll', function() {
+        // 스크롤이 맨 위에 도달했는지 확인
+        if (messageContainer.scrollTop <= 10 && !isLoading && hasMoreMessages) {
+          fetchPreviousMessages();
+        }
+      });
+
+      // 서버에서 참여자 목록 가져오기
+      function fetchParticipants() {
+        fetch(`/api/rooms/${roomId}/participants`)
+          .then(response => response.json())
+          .then(data => {
+            updateParticipants(data);
+          });
+      }
+
+      // 참여자 목록 표시하기
+      function updateParticipants(participants) {
+        const participantList = document.getElementById('participantList');
+        participantList.innerHTML = '';
+
+        participants.forEach(participant => {
+          const participantItem = document.createElement('div');
+          participantItem.className = 'user-item';
+
+          const avatar = document.createElement('img');
+          avatar.className = 'participant-avatar';
+          avatar.src = participant.image ? participant.image : '/default-profile.png';
+          avatar.alt = 'Profile';
+
+          const name = document.createElement('span');
+          name.className = 'participant-name';
+          name.textContent = participant.name;
+
+          participantItem.appendChild(avatar);
+          participantItem.appendChild(name);
+          participantList.appendChild(participantItem);
+        });
       }
 
       // 서버에서 받은 메시지 리스트 렌더링
@@ -458,8 +584,6 @@
       };
 
       stompClient.connect({}, function (frame) {
-        console.log('Connected: ' + frame);
-
         const readCountRequest = {
           "chatTime": maxChatTime
         };

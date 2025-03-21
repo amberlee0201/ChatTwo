@@ -38,17 +38,14 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
 
         registry.addEndpoint("/chat-connect")
-            .setAllowedOrigins(url)
-            .withSockJS();
+            .setAllowedOrigins(url);
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-//        registry.setApplicationDestinationPrefixes("/publish", "/app");
-//        registry.enableSimpleBroker("/topic");
 
         registry.setApplicationDestinationPrefixes("/room-pub", "/chat-pub", "/notification-pub");
-        registry.enableSimpleBroker("/room-sub", "/chat-sub", "/topic", "/queue");
+        registry.enableSimpleBroker("/room-sub", "/chat-sub", "/topic");
     }
 
     // ✅ 사용자 인증 정보를 WebSocket 세션에 연동
