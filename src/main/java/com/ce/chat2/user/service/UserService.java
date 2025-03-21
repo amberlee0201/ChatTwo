@@ -39,6 +39,11 @@ public class UserService {
         User savedUser = userRepository.findById(id)
             .orElseThrow(UserNotFound::new);
 
+        if(image.isEmpty()){
+            savedUser.updateInfo(name);
+            return savedUser;
+        }
+
         S3FileDto dto;
         if(StringUtils.hasText(savedUser.getFileName())){
             dto = s3Service.modifyImage(image, savedUser.getFileName());
