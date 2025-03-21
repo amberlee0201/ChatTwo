@@ -11,6 +11,7 @@ import com.ce.chat2.room.dto.response.RoomResponse;
 import com.ce.chat2.room.entity.Room;
 import com.ce.chat2.room.exception.RoomNotFoundException;
 import com.ce.chat2.room.repository.RoomRepository;
+import com.ce.chat2.room.service.RoomService;
 import com.ce.chat2.room.service.RoomWebSocketService;
 import com.ce.chat2.user.entity.User;
 import com.ce.chat2.user.exception.UserNotFound;
@@ -37,6 +38,7 @@ public class RedisChatPubSubService implements MessageListener {
     private final StringRedisTemplate stringRedisTemplate;
     private final SimpMessageSendingOperations simpMessageSendingOperations;
     private final RoomWebSocketService roomWebSocketService;
+    private final RoomService roomService;
 
     public void publish(String channel, String msg){
         stringRedisTemplate.convertAndSend(channel, msg);
@@ -53,6 +55,8 @@ public class RedisChatPubSubService implements MessageListener {
             Chat chat = chatRepository.save(Chat.of(dto));
 
             updateRoom(room, chat);
+
+            roomService.updateLatestMessage(dto.getRoomId(), chat.getContent(), chat.getCreatedAt());
 
             List<Participation> participationList = participationRepository.findAllByRoomId(dto.getRoomId());
 
