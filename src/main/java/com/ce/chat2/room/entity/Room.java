@@ -67,6 +67,7 @@ public class Room {
                 .roomId(room.getRoomId())
                 .roomName(room.getRoomName())
                 .latestMessage(chat.getContent())
+                .latestTimestamp(chat.getCreatedAt())
                 .createdAt(room.getCreatedAt())
                 .createdBy(room.getCreatedBy())
                 .build();
