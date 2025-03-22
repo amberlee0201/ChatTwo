@@ -40,8 +40,12 @@ public class RedisChatPubSubService implements MessageListener {
     private final RoomWebSocketService roomWebSocketService;
     private final RoomService roomService;
 
-    public void publish(String channel, String msg){
-        stringRedisTemplate.convertAndSend(channel, msg);
+    public void publish(String channel, ChatRequestDto dto) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Room room = roomRepository.findRoomById(dto.getRoomId()).orElseThrow(RoomNotFoundException::new);
+        Chat chat = chatRepository.save(Chat.of(dto));
+        updateRoom(room, chat);
+        stringRedisTemplate.convertAndSend(channel, objectMapper.writeValueAsString(dto));
     }
 
     @Override
@@ -51,15 +55,11 @@ public class RedisChatPubSubService implements MessageListener {
         try{
             ChatRequestDto dto = om.readValue(payload, ChatRequestDto.class);
             User sender = userRepository.findById(dto.getUserId()).orElseThrow(UserNotFound::new);
-            Room room = roomRepository.findRoomById(dto.getRoomId()).orElseThrow(RoomNotFoundException::new);
-            Chat chat = chatRepository.save(Chat.of(dto));
-
-            updateRoom(room, chat);
+            Chat chat = Chat.of(dto);
 
             roomService.updateLatestMessage(dto.getRoomId(), chat.getContent(), chat.getCreatedAt());
 
             List<Participation> participationList = participationRepository.findAllByRoomId(dto.getRoomId());
-
             simpMessageSendingOperations.convertAndSend("/chat-sub/"+dto.getRoomId(),
                 ChatResponseDto.of(chat, sender, participationList.size()));
         }catch (JsonProcessingException e){

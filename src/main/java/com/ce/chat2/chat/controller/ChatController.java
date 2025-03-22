@@ -1,7 +1,6 @@
 package com.ce.chat2.chat.controller;
 
 import com.ce.chat2.chat.dto.ChatRoomDto;
-import com.ce.chat2.chat.dto.request.ChatHistoryRequestDto;
 import com.ce.chat2.chat.dto.request.ChatRequestDto;
 import com.ce.chat2.chat.dto.request.ReadCountRequestDto;
 import com.ce.chat2.chat.service.ChatService;
@@ -48,11 +47,7 @@ public class ChatController {
         ChatRequestDto chatRequestDto
     ) throws JsonProcessingException {
         chatRequestDto.setRoomId(roomId);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        String req = objectMapper.writeValueAsString(chatRequestDto);
-
-        redisChatPubSubService.publish("chat"+roomId, req);
+        redisChatPubSubService.publish("chat"+roomId, chatRequestDto);
     }
 
     @MessageMapping("/count/{roomId}")
