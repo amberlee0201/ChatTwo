@@ -37,6 +37,7 @@ public enum ErrorCode {
 
     //File
     UNSUPPORTED_FILE_FORMAT_EXCEPTION(HttpStatus.BAD_REQUEST,"UNSUPPORTED_FILE_FORMAT_EXCEPTION", "지원하지 않는 파일형식입니다."),
+    MAX_FILE_SIZE_EXCEEDED_EXCEPTION(HttpStatus.BAD_REQUEST,"MAX_FILE_SIZE_EXCEEDED_EXCEPTION", "최대 파일크기를 초과했습니다.."),
     ;
 
     private final HttpStatus status;

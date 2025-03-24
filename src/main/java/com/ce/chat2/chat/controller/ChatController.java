@@ -7,26 +7,21 @@ import com.ce.chat2.chat.service.ChatService;
 import com.ce.chat2.chat.service.ReadCountService;
 import com.ce.chat2.chat.service.RedisChatPubSubService;
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
-import com.ce.chat2.common.s3.S3FileDto;
 import com.ce.chat2.common.s3.S3Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
 
-@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class ChatController {
@@ -56,11 +51,14 @@ public class ChatController {
         ChatRequestDto chatRequestDto
     ) throws IOException {
         chatRequestDto.withRoomId(roomId);
-        log.info("chatRequestDto = {}", chatRequestDto);
-        S3FileDto fileDto = s3Service.uploadImage(chatRequestDto.getFileData(),
-            chatRequestDto.getFileName(), chatRequestDto.getFileType());
-        chatRequestDto.withFile(fileDto);
-        log.info("fileDto = {}", fileDto);
+        if(StringUtils.hasText(chatRequestDto.getFileData()) &&
+            StringUtils.hasText(chatRequestDto.getFileName()) &&
+            StringUtils.hasText(chatRequestDto.getFileType())
+        ){
+            chatRequestDto.withFile(s3Service.uploadImage(chatRequestDto.getFileData(),
+            chatRequestDto.getFileName(), chatRequestDto.getFileType()));
+        }
+
         redisChatPubSubService.publish("chat"+roomId, chatRequestDto);
     }
 

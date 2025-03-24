@@ -863,7 +863,7 @@
     if (!messageContent && !selectedFile) {
       return; // 메시지와 파일이 모두 없으면 전송하지 않음
     }
-
+    const MAX_FILE_SIZE = [[${@environment.getProperty('file.max.size')}]]; // 10MB
     // 기본 메시지 객체 생성
     const message = {
       "content": messageContent,
@@ -873,6 +873,10 @@
 
     // 파일이 선택된 경우 Base64로 변환하여 메시지에 포함
     if (selectedFile) {
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        alert("최대 파일크기를 초과했습니다.");
+        return;
+      }
       try {
         // 로딩 상태 표시 (선택사항)
         const sendButton = document.querySelector('.chat-form button');
