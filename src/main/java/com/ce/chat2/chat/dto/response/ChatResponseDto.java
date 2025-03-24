@@ -19,6 +19,8 @@ public class ChatResponseDto {
     private String senderImage;
     private String content;
     private int readCnt;
+    private String filePath;
+    private String fileType;
     private String sendAt;
     private long timestamp;
 
@@ -29,6 +31,8 @@ public class ChatResponseDto {
             .senderImage(sender.getImage())
             .content(chat.getContent())
             .readCnt(readCnt)
+            .filePath(chat.getFilePath())
+            .fileType(chat.getFileType())
             .sendAt(chat.timeToString())
             .timestamp(chat.getCreatedAt().toEpochMilli())
             .build();

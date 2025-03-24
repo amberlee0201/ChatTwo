@@ -1,682 +1,931 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat2 - Chat Room</title>
-    <!-- SockJS와 STOMP 라이브러리 추가 -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stomp-websocket@2.3.4-next/lib/stomp.min.js"></script>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #0C356A;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      .chat-container {
-        display: flex;
-        max-width: 1200px;
-        width: 100%;
-        height: 100vh;
-        position: relative;
-        overflow: hidden;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat2 - Chat Room</title>
+  <!-- SockJS와 STOMP 라이브러리 추가 -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stomp-websocket@2.3.4-next/lib/stomp.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0C356A;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .chat-container {
+      display: flex;
+      max-width: 1200px;
+      width: 100%;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+    .chat-main {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      background-color: #FFF0CE;
+      transition: width 0.3s ease, margin-left 0.3s ease;
+      width: calc(100% - 250px);
+      margin-left: 250px;
+      position: relative;
+    }
+    .chat-main.full-width {
+      width: 100%;
+      margin-left: 0;
+    }
+    .chat-header {
+      background-color: #0174BE;
+      color: #FFF0CE;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-header h1 {
+      font-size: 1.5rem;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border: 2px solid #FFF0CE;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .message-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+    .message-wrapper.sent {
+      flex-direction: row-reverse;
+    }
+    .message {
+      max-width: 70%;
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      position: relative;
+      word-wrap: break-word;
+    }
+    .message-time {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      margin-top: 0.3rem;
+      text-align: right;
+    }
+    .message-received {
+      align-self: flex-start;
+      background-color: #0174BE;
+      color: #FFF0CE;
+      border-bottom-left-radius: 0.25rem;
+    }
+    .message-sent {
+      align-self: flex-end;
+      background-color: #FFC436;
+      color: #0C356A;
+      border-bottom-right-radius: 0.25rem;
+    }
+    .read-count {
+      font-size: 0.7rem;
+      background-color: #0C356A;
+      color: #FFF0CE;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .chat-input {
+      padding: 1rem;
+      background-color: #FFF0CE;
+      border-top: 1px solid rgba(12, 53, 106, 0.2);
+    }
+    .chat-form {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .chat-form input {
+      flex: 1;
+      padding: 0.75rem;
+      border: 2px solid #0174BE;
+      border-radius: 1.5rem;
+      outline: none;
+      background-color: white;
+    }
+    .chat-form button {
+      background-color: #0174BE;
+      color: #FFF0CE;
+      border: none;
+      border-radius: 1.5rem;
+      padding: 0 1.5rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .chat-form button:hover {
+      background-color: #FFC436;
+      color: #0C356A;
+    }
+    .user-list {
+      width: 250px;
+      background-color: #0C356A;
+      color: #FFF0CE;
+      padding: 1rem;
+      overflow-y: auto;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      visibility: visible;
+      opacity: 1;
+    }
+    .user-list.hidden {
+      transform: translateX(-100%);
+      visibility: hidden;
+      opacity: 0;
+    }
+    .user-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 240, 206, 0.2);
+    }
+    .user-list h2 {
+      font-size: 1.2rem;
+    }
+    .user-list-content {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .participant-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #FFF0CE;
+    }
+    .participant-name {
+      font-size: 0.9rem;
+    }
+    .toggle-sidebar {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      background-color: #0C356A;
+      color: #FFF0CE;
+      border: none;
+      border-radius: 4px;
+      padding: 0.5rem;
+      cursor: pointer;
+      z-index: 15;
+      transition: all 0.3s ease;
+    }
+    .home-btn {
+      background-color: #FFC436;
+      color: #0C356A;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      transition: background-color 0.3s ease;
+    }
+    .home-btn:hover {
+      background-color: #FFF0CE;
+    }
+    .sidebar-icon {
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+    }
+    .message-sender-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .sender-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #0174BE;
+    }
+    .sender-name {
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: #0C356A;
+    }
+    .message-content-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+    .loading-indicator {
+      text-align: center;
+      padding: 1rem;
+      color: #0C356A;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .loading-indicator.visible {
+      display: block;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(1, 116, 190, 0.3);
+      border-radius: 50%;
+      border-top-color: #0174BE;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* 파일 첨부 관련 스타일 */
+    .file-attach-btn {
+      background-color: #0174BE;
+      color: #FFF0CE;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .file-attach-btn:hover {
+      background-color: #FFC436;
+      color: #0C356A;
+    }
+    .file-input {
+      display: none;
+    }
+    .file-preview {
+      padding: 0.5rem;
+      background-color: rgba(1, 116, 190, 0.1);
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      display: none;
+    }
+    .file-preview.visible {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .file-name {
+      font-size: 0.9rem;
+      color: #0C356A;
+      margin-right: 0.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+    .file-remove {
+      background-color: #FFC436;
+      color: #0C356A;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .message-file {
+      margin-top: 0.5rem;
+      max-width: 100%;
+    }
+    .message-file img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    .message-file .file-download {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background-color: rgba(255, 255, 255, 0.3);
+      border-radius: 0.5rem;
+    }
+    .download-btn {
+      background-color: #0174BE;
+      color: #FFF0CE;
+      border: none;
+      border-radius: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .user-list {
+        width: 200px;
       }
       .chat-main {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-        background-color: #FFF0CE;
-        transition: width 0.3s ease, margin-left 0.3s ease;
-        width: calc(100% - 250px);
-        margin-left: 250px;
-        position: relative;
+        width: calc(100% - 200px);
+        margin-left: 200px;
       }
-      .chat-main.full-width {
-        width: 100%;
-        margin-left: 0;
-      }
-      .chat-header {
-        background-color: #0174BE;
-        color: #FFF0CE;
-        padding: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .chat-header h1 {
-        font-size: 1.5rem;
-      }
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .user-avatar {
-        width: 40px;
-        height: 40px;
-        object-fit: cover;
-        border: 2px solid #FFF0CE;
-      }
-      .chat-messages {
-        flex: 1;
-        padding: 1rem;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-      .message-wrapper {
-        display: flex;
-        align-items: flex-end;
-        gap: 0.5rem;
-      }
-      .message-wrapper.sent {
-        flex-direction: row-reverse;
-      }
-      .message {
-        max-width: 70%;
-        padding: 0.75rem 1rem;
-        border-radius: 1rem;
-        position: relative;
-        word-wrap: break-word;
-      }
-      .message-time {
-        font-size: 0.7rem;
-        opacity: 0.7;
-        margin-top: 0.3rem;
-        text-align: right;
-      }
-      .message-received {
-        align-self: flex-start;
-        background-color: #0174BE;
-        color: #FFF0CE;
-        border-bottom-left-radius: 0.25rem;
-      }
-      .message-sent {
-        align-self: flex-end;
-        background-color: #FFC436;
-        color: #0C356A;
-        border-bottom-right-radius: 0.25rem;
-      }
-      .read-count {
-        font-size: 0.7rem;
-        background-color: #0C356A;
-        color: #FFF0CE;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .chat-input {
-        padding: 1rem;
-        background-color: #FFF0CE;
-        border-top: 1px solid rgba(12, 53, 106, 0.2);
-      }
-      .chat-form {
-        display: flex;
-        gap: 0.5rem;
-      }
-      .chat-form input {
-        flex: 1;
-        padding: 0.75rem;
-        border: 2px solid #0174BE;
-        border-radius: 1.5rem;
-        outline: none;
-        background-color: white;
-      }
-      .chat-form button {
-        background-color: #0174BE;
-        color: #FFF0CE;
-        border: none;
-        border-radius: 1.5rem;
-        padding: 0 1.5rem;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background-color 0.3s ease;
-      }
-      .chat-form button:hover {
-        background-color: #FFC436;
-        color: #0C356A;
-      }
-      .user-list {
-        width: 250px;
-        background-color: #0C356A;
-        color: #FFF0CE;
-        padding: 1rem;
-        overflow-y: auto;
-        height: 100%;
-        position: absolute;
-        left: 0;
-        top: 0;
-        transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-        z-index: 10;
-        display: flex;
-        flex-direction: column;
-        visibility: visible;
-        opacity: 1;
-      }
-      .user-list.hidden {
-        transform: translateX(-100%);
-        visibility: hidden;
-        opacity: 0;
-      }
-      .user-list-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid rgba(255, 240, 206, 0.2);
-      }
-      .user-list h2 {
-        font-size: 1.2rem;
-      }
-      .user-list-content {
-        flex: 1;
-        overflow-y: auto;
-      }
-      .user-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem;
-        border-radius: 0.5rem;
-        margin-bottom: 0.5rem;
-      }
-      .participant-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #FFF0CE;
-      }
-      .participant-name {
-        font-size: 0.9rem;
-      }
-      .toggle-sidebar {
-        position: absolute;
-        left: 10px;
-        top: 10px;
-        background-color: #0C356A;
-        color: #FFF0CE;
-        border: none;
-        border-radius: 4px;
-        padding: 0.5rem;
-        cursor: pointer;
-        z-index: 15;
-        transition: all 0.3s ease;
-      }
-      .home-btn {
-        background-color: #FFC436;
-        color: #0C356A;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        text-decoration: none;
-        display: inline-block;
-        transition: background-color 0.3s ease;
-      }
-      .home-btn:hover {
-        background-color: #FFF0CE;
-      }
-      .sidebar-icon {
-        width: 20px;
-        height: 20px;
-        display: inline-block;
-      }
-      .message-sender-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-      }
-      .sender-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #0174BE;
-      }
-      .sender-name {
-        font-weight: bold;
-        font-size: 0.9rem;
-        color: #0C356A;
-      }
-      .message-content-wrapper {
-        display: flex;
-        flex-direction: column;
-      }
-      .loading-indicator {
-        text-align: center;
-        padding: 1rem;
-        color: #0C356A;
-        font-size: 0.9rem;
-        display: none;
-      }
-      .loading-indicator.visible {
-        display: block;
-      }
-      .spinner {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 3px solid rgba(1, 116, 190, 0.3);
-        border-radius: 50%;
-        border-top-color: #0174BE;
-        animation: spin 1s ease-in-out infinite;
-        margin-right: 8px;
-        vertical-align: middle;
-      }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-      @media (max-width: 768px) {
-        .user-list {
-          width: 200px;
-        }
-        .chat-main {
-          width: calc(100% - 200px);
-          margin-left: 200px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-  <div class="chat-container">
-    <!-- 사용자 목록 -->
-    <div id="userList" class="user-list">
-      <div class="user-list-header">
-        <h2>참여자</h2>
-        <a href="/rooms" class="home-btn">홈으로</a>
-      </div>
-
-      <div class="user-list-content" id="participantList">
-        <!-- 참여자 목록 렌더링-->
-        <div th:each="participant : ${participants}" class="user-item">
-          <img th:if="${participant.image}" th:src="${participant.image}" alt="Profile" class="participant-avatar">
-          <img th:unless="${participant.image}" src="/default-profile.png" alt="Profile" class="participant-avatar">
-          <span th:text="${participant.name}" class="participant-name">김대식</span>
-        </div>
-      </div>
+    }
+  </style>
+</head>
+<body>
+<div class="chat-container">
+  <!-- 사용자 목록 -->
+  <div id="userList" class="user-list">
+    <div class="user-list-header">
+      <h2>참여자</h2>
+      <a href="/rooms" class="home-btn">홈으로</a>
     </div>
 
-    <!-- 메인 채팅 영역 -->
-    <div id="chatMain" class="chat-main">
-      <button id="toggleSidebar" class="toggle-sidebar">
-        <span class="sidebar-icon">≡</span>
-      </button>
-
-      <div class="chat-messages" id="messageContainer">
-        <div id="loadingIndicator" class="loading-indicator">
-          <div class="spinner"></div>
-          <span>이전 메시지 불러오는 중...</span>
-        </div>
-      </div>
-
-      <div class="chat-input">
-        <div class="chat-form">
-          <input type="text" id="messageInput" placeholder="메세지를 입력하세요." autocomplete="off">
-          <button type="button" onclick="sendMessage()">Send</button>
-        </div>
+    <div class="user-list-content" id="participantList">
+      <!-- 참여자 목록 렌더링-->
+      <div th:each="participant : ${participants}" class="user-item">
+        <img th:if="${participant.image}" th:src="${participant.image}" alt="Profile" class="participant-avatar">
+        <img th:unless="${participant.image}" src="/default-profile.png" alt="Profile" class="participant-avatar">
+        <span th:text="${participant.name}" class="participant-name">김대식</span>
       </div>
     </div>
   </div>
 
-    <script th:inline="javascript">
-      // 소켓 연결
-      const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/chat-connect';
-      //const socket = new SockJS(url);
-      const socket = new WebSocket(url);
-      const stompClient = Stomp.over(socket);
+  <!-- 메인 채팅 영역 -->
+  <div id="chatMain" class="chat-main">
+    <button id="toggleSidebar" class="toggle-sidebar">
+      <span class="sidebar-icon">≡</span>
+    </button>
 
-      // 메시지 컨테이너를 항상 최신 메시지가 보이도록 스크롤
-      const messageContainer = document.getElementById('messageContainer');
-      function scrollToBottom() {
-        messageContainer.scrollTop = messageContainer.scrollHeight;
-      }
+    <div class="chat-messages" id="messageContainer">
+      <div id="loadingIndicator" class="loading-indicator">
+        <div class="spinner"></div>
+        <span>이전 메시지 불러오는 중...</span>
+      </div>
+    </div>
 
-      const user = /*[[${user}]]*/;
-      const roomId = /*[[${roomId}]]*/;
-      const participants = /*[[${participants}]]*/ [];
+    <div class="chat-input">
+      <!-- 파일 미리보기 영역 추가 -->
+      <div id="filePreview" class="file-preview">
+        <span id="fileName" class="file-name"></span>
+        <button id="removeFile" class="file-remove">×</button>
+      </div>
 
-      var chats = /*[[${chatHistory}]]*/ [];
-      var maxChatTime = (chats && chats.length > 0) ? chats[chats.length - 1].timestamp : 0;
+      <div class="chat-form">
+        <!-- 파일 첨부 버튼 추가 -->
+        <label for="fileInput" class="file-attach-btn">+</label>
+        <input type="file" id="fileInput" class="file-input">
 
-      //pagination
-      var currentPage = 1;
-      var isLoading = false;
-      var hasMoreMessages = true;
-      var lastEvaluatedKey = /*[[${lastEvaluatedKey}]]*/ null;
-      const PAGE_SIZE = 20;
-      const loadingIndicator = document.getElementById('loadingIndicator');
+        <input type="text" id="messageInput" placeholder="메세지를 입력하세요." autocomplete="off">
+        <button type="button" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-      // 메시지 요소 생성 공통 함수
-      function createMessageElement(message) {
-        const isMyMessage = message.userId === user.id;
+<script th:inline="javascript">
+  // 소켓 연결
+  const url = [[${@environment.getProperty('cloud.aws.url')}]] + '/chat-connect';
+  //const socket = new SockJS(url);
+  const socket = new WebSocket(url);
+  const stompClient = Stomp.over(socket);
 
-        // 메시지 래퍼 생성
-        const messageWrapper = document.createElement('div');
-        messageWrapper.className = isMyMessage ? 'message-wrapper sent' : 'message-wrapper';
-        messageWrapper.setAttribute('data-message-time', message.timestamp);
+  // 메시지 컨테이너를 항상 최신 메시지가 보이도록 스크롤
+  const messageContainer = document.getElementById('messageContainer');
+  function scrollToBottom() {
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
 
-        if (!isMyMessage) {
-          // 다른 사용자의 메시지인 경우 프로필 사진과 이름 표시
-          const contentWrapper = document.createElement('div');
-          contentWrapper.className = 'message-content-wrapper';
+  const user = /*[[${user}]]*/;
+  const roomId = /*[[${roomId}]]*/;
+  const participants = /*[[${participants}]]*/ [];
 
-          const senderInfo = document.createElement('div');
-          senderInfo.className = 'message-sender-info';
+  var chats = /*[[${chatHistory}]]*/ [];
+  var maxChatTime = (chats && chats.length > 0) ? chats[chats.length - 1].timestamp : 0;
 
-          const avatar = document.createElement('img');
-          avatar.src = message.senderImage || '/default-profile.png';
-          avatar.alt = 'Profile';
-          avatar.className = 'sender-avatar';
+  //pagination
+  var currentPage = 1;
+  var isLoading = false;
+  var hasMoreMessages = true;
+  var lastEvaluatedKey = /*[[${lastEvaluatedKey}]]*/ null;
+  const PAGE_SIZE = 20;
+  const loadingIndicator = document.getElementById('loadingIndicator');
 
-          const name = document.createElement('span');
-          name.className = 'sender-name';
-          name.textContent = message.senderName;
+  // 파일 첨부 관련 변수
+  let selectedFile = null;
+  const fileInput = document.getElementById('fileInput');
+  const filePreview = document.getElementById('filePreview');
+  const fileName = document.getElementById('fileName');
+  const removeFileBtn = document.getElementById('removeFile');
 
-          senderInfo.appendChild(avatar);
-          senderInfo.appendChild(name);
-          contentWrapper.appendChild(senderInfo);
+  // 파일 선택 이벤트 처리
+  fileInput.addEventListener('change', function(e) {
+    if (this.files.length > 0) {
+      selectedFile = this.files[0];
+      fileName.textContent = selectedFile.name;
+      filePreview.classList.add('visible');
+    }
+  });
 
-          const messageElement = document.createElement('div');
-          messageElement.className = 'message message-received';
+  // 파일 제거 버튼 이벤트 처리
+  removeFileBtn.addEventListener('click', function() {
+    selectedFile = null;
+    fileInput.value = '';
+    filePreview.classList.remove('visible');
+  });
 
-          const contentElement = document.createElement('div');
-          contentElement.textContent = message.content;
+  // 파일을 Base64로 변환
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
 
-          const timeElement = document.createElement('div');
-          timeElement.className = 'message-time';
-          const sendAt = new Date(message.sendAt);
-          timeElement.textContent = `${sendAt.getHours().toString().padStart(2, '0')}:${sendAt.getMinutes().toString().padStart(2, '0')}`;
+  // 메시지 요소 생성 공통 함수
+  function createMessageElement(message) {
+    const isMyMessage = message.userId === user.id;
 
-          messageElement.appendChild(contentElement);
-          messageElement.appendChild(timeElement);
-          contentWrapper.appendChild(messageElement);
+    // 메시지 래퍼 생성
+    const messageWrapper = document.createElement('div');
+    messageWrapper.className = isMyMessage ? 'message-wrapper sent' : 'message-wrapper';
+    messageWrapper.setAttribute('data-message-time', message.timestamp);
 
-          messageWrapper.appendChild(contentWrapper);
+    if (!isMyMessage) {
+      // 다른 사용자의 메시지인 경우 프로필 사진과 이름 표시
+      const contentWrapper = document.createElement('div');
+      contentWrapper.className = 'message-content-wrapper';
+
+      const senderInfo = document.createElement('div');
+      senderInfo.className = 'message-sender-info';
+
+      const avatar = document.createElement('img');
+      avatar.src = message.senderImage || '/default-profile.png';
+      avatar.alt = 'Profile';
+      avatar.className = 'sender-avatar';
+
+      const name = document.createElement('span');
+      name.className = 'sender-name';
+      name.textContent = message.senderName;
+
+      senderInfo.appendChild(avatar);
+      senderInfo.appendChild(name);
+      contentWrapper.appendChild(senderInfo);
+
+      const messageElement = document.createElement('div');
+      messageElement.className = 'message message-received';
+
+      const contentElement = document.createElement('div');
+      contentElement.textContent = message.content;
+
+      const timeElement = document.createElement('div');
+      timeElement.className = 'message-time';
+      const sendAt = new Date(message.sendAt);
+      timeElement.textContent = `${sendAt.getHours().toString().padStart(2, '0')}:${sendAt.getMinutes().toString().padStart(2, '0')}`;
+
+      messageElement.appendChild(contentElement);
+
+      // 파일이 있는 경우 파일 표시
+      if (message.filePath && message.fileType) {
+        const fileElement = document.createElement('div');
+        fileElement.className = 'message-file';
+
+        // 이미지 파일인 경우 미리보기 표시
+        if (message.fileType === 'image/jpeg' || message.fileType === 'image/pjpeg' || message.fileType === 'image/png') {
+          const imgElement = document.createElement('img');
+          imgElement.src = message.filePath;
+          imgElement.alt = '첨부 이미지';
+          imgElement.onclick = function() {
+            window.open(message.filePath, '_blank');
+          };
+          fileElement.appendChild(imgElement);
         } else {
-          const messageElement = document.createElement('div');
-          messageElement.className = 'message message-sent';
+          // 일반 파일인 경우 다운로드 버튼 표시
+          const fileDownload = document.createElement('div');
+          fileDownload.className = 'file-download';
 
-          const contentElement = document.createElement('div');
-          contentElement.textContent = message.content;
+          const fileNameSpan = document.createElement('span');
+          // 파일 경로에서 파일명 추출
+          const fileName = message.filePath.split('/').pop();
+          fileNameSpan.textContent = fileName;
 
-          const timeElement = document.createElement('div');
-          timeElement.className = 'message-time';
-          const sendAt = new Date(message.sendAt);
-          timeElement.textContent = `${sendAt.getHours().toString().padStart(2, '0')}:${sendAt.getMinutes().toString().padStart(2, '0')}`;
+          const downloadBtn = document.createElement('button');
+          downloadBtn.className = 'download-btn';
+          downloadBtn.textContent = '다운로드';
+          downloadBtn.onclick = function() {
+            window.open(message.filePath, '_blank');
+          };
 
-          messageElement.appendChild(contentElement);
-          messageElement.appendChild(timeElement);
-
-          messageWrapper.appendChild(messageElement);
+          fileDownload.appendChild(fileNameSpan);
+          fileDownload.appendChild(downloadBtn);
+          fileElement.appendChild(fileDownload);
         }
 
-        // 읽지 않은 사용자 수가 있는 경우 표시
-        if (message.readCnt && message.readCnt > 0) {
-          const readCountElement = document.createElement('div');
-          readCountElement.className = 'read-count';
-          readCountElement.textContent = message.readCnt;
-          messageWrapper.appendChild(readCountElement);
+        messageElement.appendChild(fileElement);
+      }
+
+      messageElement.appendChild(timeElement);
+      contentWrapper.appendChild(messageElement);
+
+      messageWrapper.appendChild(contentWrapper);
+    } else {
+      const messageElement = document.createElement('div');
+      messageElement.className = 'message message-sent';
+
+      const contentElement = document.createElement('div');
+      contentElement.textContent = message.content;
+
+      const timeElement = document.createElement('div');
+      timeElement.className = 'message-time';
+      const sendAt = new Date(message.sendAt);
+      timeElement.textContent = `${sendAt.getHours().toString().padStart(2, '0')}:${sendAt.getMinutes().toString().padStart(2, '0')}`;
+
+      messageElement.appendChild(contentElement);
+
+      // 파일이 있는 경우 파일 표시
+      if (message.filePath && message.fileType) {
+        const fileElement = document.createElement('div');
+        fileElement.className = 'message-file';
+
+        // 이미지 파일인 경우 미리보기 표시
+        if (message.fileType === 'image/jpeg' || message.fileType === 'image/pjpeg' || message.fileType === 'image/png') {
+          const imgElement = document.createElement('img');
+          imgElement.src = message.filePath;
+          imgElement.alt = '첨부 이미지';
+          imgElement.onclick = function() {
+            window.open(message.filePath, '_blank');
+          };
+          fileElement.appendChild(imgElement);
+        } else {
+          // 일반 파일인 경우 다운로드 버튼 표시
+          const fileDownload = document.createElement('div');
+          fileDownload.className = 'file-download';
+
+          const fileNameSpan = document.createElement('span');
+          // 파일 경로에서 파일명 추출
+          const fileName = message.filePath.split('/').pop();
+          fileNameSpan.textContent = fileName;
+
+          const downloadBtn = document.createElement('button');
+          downloadBtn.className = 'download-btn';
+          downloadBtn.textContent = '다운로드';
+          downloadBtn.onclick = function() {
+            window.open(message.filePath, '_blank');
+          };
+
+          fileDownload.appendChild(fileNameSpan);
+          fileDownload.appendChild(downloadBtn);
+          fileElement.appendChild(fileDownload);
         }
 
-        return messageWrapper;
+        messageElement.appendChild(fileElement);
       }
 
-      // 메시지 렌더링 함수 (맨 아래에 추가)
-      function renderMessage(message) {
-        const messageElement = createMessageElement(message);
-        messageContainer.appendChild(messageElement);
-        scrollToBottom();
-      }
+      messageElement.appendChild(timeElement);
 
-      // 메시지를 맨 위에 추가하는 함수
-      function prependMessage(message) {
-        const messageElement = createMessageElement(message);
-        messageContainer.insertBefore(messageElement, loadingIndicator.nextSibling);
-      }
+      messageWrapper.appendChild(messageElement);
+    }
 
-      //이전 메세지 조회
-      function fetchPreviousMessages() {
-        if (isLoading || !hasMoreMessages) return;
+    // 읽지 않은 사용자 수가 있는 경우 표시
+    if (message.readCnt && message.readCnt > 0) {
+      const readCountElement = document.createElement('div');
+      readCountElement.className = 'read-count';
+      readCountElement.textContent = message.readCnt;
+      messageWrapper.appendChild(readCountElement);
+    }
 
-        isLoading = true;
-        loadingIndicator.classList.add('visible');
+    return messageWrapper;
+  }
 
-        // 현재 스크롤 위치 저장
-        const scrollHeight = messageContainer.scrollHeight;
-        fetch(`/api/chats`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            roomId: roomId,
-            lastKey: lastEvaluatedKey
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          // 응답에서 채팅 목록과 마지막 키 추출
-          const chatList = data.chatResponseDtoList;
-          lastEvaluatedKey = data.lastEvaluatedKey;
+  // 메시지 렌더링 함수 (맨 아래에 추가)
+  function renderMessage(message) {
+    const messageElement = createMessageElement(message);
+    messageContainer.appendChild(messageElement);
+    scrollToBottom();
+  }
 
-          // 더 이상 메시지가 없는 경우
-          if (!chatList || chatList.length === 0) {
-            hasMoreMessages = false;
-            loadingIndicator.textContent = '더 이상 메시지가 없습니다.';
-            setTimeout(() => {
-              loadingIndicator.classList.remove('visible');
-            }, 2000);
-            return;
-          }
+  // 메시지를 맨 위에 추가하는 함수
+  function prependMessage(message) {
+    const messageElement = createMessageElement(message);
+    messageContainer.insertBefore(messageElement, loadingIndicator.nextSibling);
+  }
 
-          // 마지막 키가 없으면 더 이상 메시지가 없음을 의미
-          if (!lastEvaluatedKey) {
-            hasMoreMessages = false;
-          }
+  //이전 메세지 조회
+  function fetchPreviousMessages() {
+    if (isLoading || !hasMoreMessages) return;
 
-          // 메시지를 최신순으로 정렬하고 역순으로 변경
-          const sortedChats = [...chatList].sort((a, b) => a.timestamp - b.timestamp).reverse();
+    isLoading = true;
+    loadingIndicator.classList.add('visible');
 
-          // 메시지를 맨 위에 추가
-          sortedChats.forEach(chat => {
-            prependMessage({
-              userId: chat.userId,
-              senderName: chat.senderName,
-              senderImage: chat.senderImage || '/default-profile.png',
-              content: chat.content,
-              readCnt: chat.readCnt,
-              sendAt: chat.sendAt,
-              timestamp: chat.timestamp
-            });
-          });
+    // 현재 스크롤 위치 저장
+    const scrollHeight = messageContainer.scrollHeight;
+    fetch(`/api/chats`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        roomId: roomId,
+        lastKey: lastEvaluatedKey
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      // 응답에서 채팅 목록과 마지막 키 추출
+      const chatList = data.chatResponseDtoList;
+      lastEvaluatedKey = data.lastEvaluatedKey;
 
-          currentPage++;
-
-          // 스크롤 위치 유지
-          const newScrollHeight = messageContainer.scrollHeight;
-          messageContainer.scrollTop = newScrollHeight - scrollHeight;
-        })
-        .catch(error => {
-          console.error("이전 메시지 로딩 중 오류 발생:", error);
-        })
-        .finally(() => {
-          isLoading = false;
+      // 더 이상 메시지가 없는 경우
+      if (!chatList || chatList.length === 0) {
+        hasMoreMessages = false;
+        loadingIndicator.textContent = '더 이상 메시지가 없습니다.';
+        setTimeout(() => {
           loadingIndicator.classList.remove('visible');
-        });
+        }, 2000);
+        return;
       }
 
-      // 스크롤 이벤트 리스너 추가
-      messageContainer.addEventListener('scroll', function() {
-        // 스크롤이 맨 위에 도달했는지 확인
-        if (messageContainer.scrollTop <= 10 && !isLoading && hasMoreMessages) {
-          fetchPreviousMessages();
-        }
+      // 마지막 키가 없으면 더 이상 메시지가 없음을 의미
+      if (!lastEvaluatedKey) {
+        hasMoreMessages = false;
+      }
+
+      // 메시지를 최신순으로 정렬하고 역순으로 변경
+      const sortedChats = [...chatList].sort((a, b) => a.timestamp - b.timestamp).reverse();
+
+      // 메시지를 맨 위에 추가
+      sortedChats.forEach(chat => {
+        prependMessage({
+          userId: chat.userId,
+          senderName: chat.senderName,
+          senderImage: chat.senderImage || '/default-profile.png',
+          content: chat.content,
+          readCnt: chat.readCnt,
+          sendAt: chat.sendAt,
+          timestamp: chat.timestamp,
+          filePath: chat.filePath,
+          fileType: chat.fileType
+        });
       });
 
-      // 서버에서 참여자 목록 가져오기
-      function fetchParticipants() {
-        fetch(`/api/rooms/${roomId}/participants`)
-          .then(response => response.json())
-          .then(data => {
-            updateParticipants(data);
-          });
-      }
+      currentPage++;
 
-      // 참여자 목록 표시하기
-      function updateParticipants(participants) {
-        const participantList = document.getElementById('participantList');
-        participantList.innerHTML = '';
+      // 스크롤 위치 유지
+      const newScrollHeight = messageContainer.scrollHeight;
+      messageContainer.scrollTop = newScrollHeight - scrollHeight;
+    })
+    .catch(error => {
+      console.error("이전 메시지 로딩 중 오류 발생:", error);
+    })
+    .finally(() => {
+      isLoading = false;
+      loadingIndicator.classList.remove('visible');
+    });
+  }
 
-        participants.forEach(participant => {
-          const participantItem = document.createElement('div');
-          participantItem.className = 'user-item';
+  // 스크롤 이벤트 리스너 추가
+  messageContainer.addEventListener('scroll', function() {
+    // 스크롤이 맨 위에 도달했는지 확인
+    if (messageContainer.scrollTop <= 10 && !isLoading && hasMoreMessages) {
+      fetchPreviousMessages();
+    }
+  });
 
-          const avatar = document.createElement('img');
-          avatar.className = 'participant-avatar';
-          avatar.src = participant.image ? participant.image : '/default-profile.png';
-          avatar.alt = 'Profile';
+  // 서버에서 참여자 목록 가져오기
+  function fetchParticipants() {
+    fetch(`/api/rooms/${roomId}/participants`)
+      .then(response => response.json())
+      .then(data => {
+        updateParticipants(data);
+      });
+  }
 
-          const name = document.createElement('span');
-          name.className = 'participant-name';
-          name.textContent = participant.name;
+  // 참여자 목록 표시하기
+  function updateParticipants(participants) {
+    const participantList = document.getElementById('participantList');
+    participantList.innerHTML = '';
 
-          participantItem.appendChild(avatar);
-          participantItem.appendChild(name);
-          participantList.appendChild(participantItem);
-        });
-      }
+    participants.forEach(participant => {
+      const participantItem = document.createElement('div');
+      participantItem.className = 'user-item';
 
-      // 서버에서 받은 메시지 리스트 렌더링
-      window.onload = function () {
-        scrollToBottom();
-        fetchParticipants();
+      const avatar = document.createElement('img');
+      avatar.className = 'participant-avatar';
+      avatar.src = participant.image ? participant.image : '/default-profile.png';
+      avatar.alt = 'Profile';
 
-        // 메시지 리스트 렌더링
-        chats.reverse().forEach(c => {
-          renderMessage({
-            userId: c.userId,
-            senderName: c.senderName,
-            senderImage: c.senderImage,
-            content: c.content,
-            readCnt: c.readCnt,
-            sendAt: c.sendAt,
-            timestamp: c.timestamp
-          });
-          maxChatTime = Math.max(maxChatTime, c.timestamp);
-        });
+      const name = document.createElement('span');
+      name.className = 'participant-name';
+      name.textContent = participant.name;
+
+      participantItem.appendChild(avatar);
+      participantItem.appendChild(name);
+      participantList.appendChild(participantItem);
+    });
+  }
+
+  // 서버에서 받은 메시지 리스트 렌더링
+  window.onload = function () {
+    scrollToBottom();
+    fetchParticipants();
+
+    // 메시지 리스트 렌더링
+    chats.reverse().forEach(c => {
+      renderMessage({
+        userId: c.userId,
+        senderName: c.senderName,
+        senderImage: c.senderImage,
+        content: c.content,
+        readCnt: c.readCnt,
+        sendAt: c.sendAt,
+        timestamp: c.timestamp,
+        filePath: c.filePath,
+        fileType: c.fileType
+      });
+      maxChatTime = Math.max(maxChatTime, c.timestamp);
+    });
+  };
+
+  stompClient.connect({}, function (frame) {
+    const readCountRequest = {
+      "chatTime": maxChatTime
+    };
+    stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));
+
+    // 메시지 수신
+    stompClient.subscribe(`/chat-sub/${roomId}`, function (messageOutput) {
+      const message = JSON.parse(messageOutput.body);
+      renderMessage(message);
+      maxChatTime = message.chatTime;
+
+      const readCountRequest = {
+        "chatTime": message.timestamp
       };
+      // 읽음 처리
+      stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));
+    });
 
-      stompClient.connect({}, function (frame) {
-        const readCountRequest = {
-          "chatTime": maxChatTime
-        };
-        stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));
+    // 읽음 이벤트 수신
+    stompClient.subscribe(`/chat-sub/count/${roomId}`, function (readCountResponse) {
+      const readCountRes = JSON.parse(readCountResponse.body);
+      const firstReadChatTime = Number(readCountRes.firstReadChatTime);
+      const lastReadChatTime = Number(readCountRes.lastReadChatTime);
 
-        // 메시지 수신
-        stompClient.subscribe(`/chat-sub/${roomId}`, function (messageOutput) {
-          const message = JSON.parse(messageOutput.body);
-          renderMessage(message);
-          maxChatTime = message.chatTime;
+      // 메시지 목록에서 해당 범위의 메시지 readCnt 감소
+      document.querySelectorAll('.message-wrapper').forEach(messageWrapper => {
+        const chatTime = Number(messageWrapper.getAttribute('data-message-time'));
 
-          const readCountRequest = {
-            "chatTime": message.timestamp
-          };
-          // 읽음 처리
-          stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));
-        });
+        if (isNaN(chatTime)) {
+          return;
+        }
 
-        // 읽음 이벤트 수신
-        stompClient.subscribe(`/chat-sub/count/${roomId}`, function (readCountResponse) {
-          const readCountRes = JSON.parse(readCountResponse.body);
-          const firstReadChatTime = Number(readCountRes.firstReadChatTime);
-          const lastReadChatTime = Number(readCountRes.lastReadChatTime);
 
-          // 메시지 목록에서 해당 범위의 메시지 readCnt 감소
-          document.querySelectorAll('.message-wrapper').forEach(messageWrapper => {
-            const chatTime = Number(messageWrapper.getAttribute('data-message-time'));
+        if (chatTime >= firstReadChatTime && chatTime <= lastReadChatTime) {
+          const readCountElement = messageWrapper.querySelector('.read-count');
 
-            if (isNaN(chatTime)) {
+          if (readCountElement) {
+            let currentReadCnt = Number(readCountElement.textContent);
+
+            if (isNaN(currentReadCnt)) {
               return;
             }
 
+            if (currentReadCnt > 0) {
+              currentReadCnt -= 1;
 
-            if (chatTime >= firstReadChatTime && chatTime <= lastReadChatTime) {
-              const readCountElement = messageWrapper.querySelector('.read-count');
-
-              if (readCountElement) {
-                let currentReadCnt = Number(readCountElement.textContent);
-
-                if (isNaN(currentReadCnt)) {
-                  return;
-                }
-
-                if (currentReadCnt > 0) {
-                  currentReadCnt -= 1;
-
-                  if (currentReadCnt === 0) {
-                    readCountElement.remove();
-                  } else {
-                    readCountElement.textContent = currentReadCnt;
-                  }
-                }
+              if (currentReadCnt === 0) {
+                readCountElement.remove();
               } else {
-                console.warn(`No read-count element found for chatTime: ${chatTime}`);
+                readCountElement.textContent = currentReadCnt;
               }
             }
-          });
-        });
-      });
-
-      // 메시지 보내기
-      function sendMessage() {
-        const messageInput = document.getElementById('messageInput');
-        const messageContent = messageInput.value.trim();
-
-        if (messageContent) {
-          const message = {
-            "content": messageContent,
-            "senderName": user.name,
-            "userId": user.id,
-          };
-          stompClient.send(`/chat-pub/${roomId}`, {}, JSON.stringify(message));
-          messageInput.value = ''; // 입력창 비우기
+          } else {
+            console.warn(`No read-count element found for chatTime: ${chatTime}`);
+          }
         }
+      });
+    });
+  });
+
+  // 메시지 보내기
+  async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const messageContent = messageInput.value.trim();
+
+    if (!messageContent && !selectedFile) {
+      return; // 메시지와 파일이 모두 없으면 전송하지 않음
+    }
+
+    // 기본 메시지 객체 생성
+    const message = {
+      "content": messageContent,
+      "senderName": user.name,
+      "userId": user.id
+    };
+
+    // 파일이 선택된 경우 Base64로 변환하여 메시지에 포함
+    if (selectedFile) {
+      try {
+        // 로딩 상태 표시 (선택사항)
+        const sendButton = document.querySelector('.chat-form button');
+        sendButton.disabled = true;
+        sendButton.textContent = '전송 중...';
+
+        // 파일을 Base64로 변환
+        const base64File = await fileToBase64(selectedFile);
+        const base64Data = base64File.split(',')[1];
+
+        // 메시지 객체에 파일 정보 추가
+        message.fileData = base64Data;
+        message.fileName = selectedFile.name;
+        message.fileType = selectedFile.type;
+
+        // 파일 선택 초기화
+        selectedFile = null;
+        fileInput.value = '';
+        filePreview.classList.remove('visible');
+
+        // 버튼 상태 복원
+        sendButton.disabled = false;
+        sendButton.textContent = 'Send';
+      } catch (error) {
+        console.error('파일 변환 실패:', error);
+        alert('파일 변환에 실패했습니다.');
+        return;
       }
+    }
 
-      // Enter 키로 메시지 전송
-      document.getElementById('messageInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          sendMessage();
-        }
-      });
+    // WebSocket을 통해 메시지 전송
+    stompClient.send(`/chat-pub/${roomId}`, {}, JSON.stringify(message));
+    messageInput.value = ''; // 입력창 비우기
+  }
 
-      // 사이드바 토글
-      const toggleSidebar = document.getElementById('toggleSidebar');
-      const userList = document.getElementById('userList');
-      const chatMain = document.getElementById('chatMain');
+  // Enter 키로 메시지 전송
+  document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
 
-      toggleSidebar.addEventListener('click', function() {
-        fetchParticipants();
-        userList.classList.toggle('hidden');
-        chatMain.classList.toggle('full-width');
-      });
-    </script>
-  </body>
+  // 사이드바 토글
+  const toggleSidebar = document.getElementById('toggleSidebar');
+  const userList = document.getElementById('userList');
+  const chatMain = document.getElementById('chatMain');
+
+  toggleSidebar.addEventListener('click', function() {
+    fetchParticipants();
+    userList.classList.toggle('hidden');
+    chatMain.classList.toggle('full-width');
+  });
+</script>
+</body>
 </html>
+

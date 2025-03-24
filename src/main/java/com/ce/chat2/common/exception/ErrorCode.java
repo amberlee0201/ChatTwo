@@ -34,6 +34,9 @@ public enum ErrorCode {
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "ROOM_NOT_FOUND", "존재하지 않는 방입니다."),
     NO_FRIENDS_FOUND(HttpStatus.NOT_FOUND, "NO_FRIENDS_FOUND", "초대할 수 있는 친구가 없습니다."), 
     NO_MEMBERS_FOUND(HttpStatus.NOT_FOUND, "NO_MEMBERS_FOUND", "방에 참여자가 없습니다."),
+
+    //File
+    UNSUPPORTED_FILE_FORMAT_EXCEPTION(HttpStatus.BAD_REQUEST,"UNSUPPORTED_FILE_FORMAT_EXCEPTION", "지원하지 않는 파일형식입니다."),
     ;
 
     private final HttpStatus status;

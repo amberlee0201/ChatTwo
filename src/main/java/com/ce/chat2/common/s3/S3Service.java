@@ -3,7 +3,10 @@ package com.ce.chat2.common.s3;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.util.Base64;
 import com.ce.chat2.common.exception.UnavailableS3;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +36,23 @@ public class S3Service {
 
         try{
             amazonS3.putObject(bucket, fileName, file.getInputStream(), metadata);
-            return S3FileDto.of(cdn+fileName, fileName);
+            return S3FileDto.of(cdn+fileName, fileName, file.getContentType());
+        }catch (AmazonServiceException e){
+            throw new UnavailableS3(e.getMessage());
+        }
+    }
+
+    public S3FileDto uploadImage(String base64FileData, String fileName, String fileType) {
+        byte[] decodedBytes = Base64.decode(base64FileData);
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decodedBytes);
+        fileName = UUID.randomUUID()+"_"+fileName;
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(decodedBytes .length);
+        metadata.setContentType(fileType);
+        try{
+            amazonS3.putObject(bucket, fileName, byteArrayInputStream, metadata);
+            return S3FileDto.of(cdn+fileName, fileName, fileType);
         }catch (AmazonServiceException e){
             throw new UnavailableS3(e.getMessage());
         }
