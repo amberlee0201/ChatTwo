@@ -10,6 +10,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .btn {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            border-radius: 5px;
+        }
         .color-db {
             background-color: #0C356A !important;
         }
@@ -116,17 +124,15 @@
     </div>
     <div class="my-5">
     </div>
-    <nav class="navbar fixed-bottom navbar-expand bg-primary">
-        <div class="container-fluid justify-content-around">
-            <a class="btn btn-warning active" role="button" href="/friends">친구 목록</a>
-            <a class="btn btn-secondary" role="button" href="/rooms">채팅방</a>
-            <div class="nav-btn-wrapper" style="position: relative;">
-                <a class="btn btn-secondary" href="/notifications">알림</a>
-                <span id="notificationBadge">1</span>
-            </div>
-            <a class="btn btn-secondary" th:href="'/users/' + ${user.id}">내 프로필</a>
+    <div class="nav-bar">
+        <a class="btn nav-btn active" role="button" href="/friends">친구 목록</a>
+        <a class="btn nav-btn" role="button" href="/rooms">채팅방</a>
+        <div class="nav-btn-wrapper" style="position: relative;">
+            <a class="btn nav-btn" href="/notifications">알림</a>
+            <span id="notificationBadge">1</span>
         </div>
-    </nav>
+        <a class="btn nav-btn" th:href="'/users/' + ${user.id}">내 프로필</a>
+    </div>
 
     <script th:inline="javascript">
         window.onload = function() {

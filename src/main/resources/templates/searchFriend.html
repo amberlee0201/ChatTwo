@@ -8,6 +8,14 @@
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> 
 
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .btn {
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            border-radius: 5px;
+        }
         .color-db {
             background-color: #0C356A !important;
         }
@@ -33,7 +41,41 @@
             color: #FFC436;
             font-size: 24px;
             margin-top: 20px;
-        }     
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background-color: #0174BE;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .nav-btn {
+            background-color: #FFF0CE;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .nav-btn.active {
+            background-color: #FFC436;
+        }
+        #notificationBadge {
+            position: absolute;
+            top: -8px; /* 버튼 상단에서 위로 */
+            right: -6px; /* 버튼 오른쪽 끝에서 약간 바깥으로 */
+            background-color: red;
+            color: white;
+            border-radius: 45%;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            display: none;
+        }
     </style>
 </head>
 <body class="color-db text-center">
@@ -59,14 +101,15 @@
         </div>
 
     </div>
-    <nav class="navbar fixed-bottom navbar-expand bg-primary">
-        <div class="container-fluid justify-content-around">
-            <a class="btn btn-warning active" role="button" href="/friends">친구 목록</a>
-            <a class="btn btn-secondary" role="button" href="/rooms">채팅방</a>
-            <a class="btn btn-secondary" role="button" href="/notifications">알림</a>
-            <a class="btn btn-secondary" th:href="'/users/' + ${user.id}">내 프로필</a>
+    <div class="nav-bar">
+        <a class="btn nav-btn active" role="button" href="/friends">친구 목록</a>
+        <a class="btn nav-btn" role="button" href="/rooms">채팅방</a>
+        <div class="nav-btn-wrapper" style="position: relative;">
+            <a class="btn nav-btn" href="/notifications">알림</a>
+            <span id="notificationBadge">1</span>
         </div>
-    </nav>
+        <a class="btn nav-btn" th:href="'/users/' + ${user.id}">내 프로필</a>
+    </div>
     <script>
 
         function searchFunction() {
