@@ -4,7 +4,7 @@
 
 **ChatTwo**는 카카오톡을 벤치마킹한 실시간 채팅 서비스입니다.  
 WebSocket + Redis Pub/Sub 구조를 통해 실시간 통신을 구현하고,  
-Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 메시지 읽음 처리 기능 등을 제공합니다.  
+Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 파일 전송, 메시지 읽음 처리 기능 등을 제공합니다.  
 전체 인프라는 AWS 상에 구축되었으며, Terraform과 ArgoCD(GitOps)를 통해 선언적으로 관리되고, EKS(Kubernetes) 환경에서 실행됩니다.
 ---
 
@@ -15,7 +15,7 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 메시지 �
 - 친구 추가, 삭제, 검색
 - 채팅방 생성, 조회, 입장, 나가기, 친구 초대
 - 실시간 채팅 (WebSocket + STOMP + Redis Pub/Sub)
-- 메시지 읽음 처리, 무한 스크롤 페이징
+- 이미지 파일 전송, 메시지 읽음 처리, 무한 스크롤 페이징
 - 알림 기능 (친구 추가, 새 메시지 등)
 ---
 
@@ -39,6 +39,7 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 메시지 �
 - Redis (Session + Pub/Sub)
 - MySQL 8.0 (회원, 친구 관리)
 - DynamoDB (채팅방 정보 및 메시지 저장)
+- S3 (프로필 사진, 채팅 이미지 저장)
 
 ### Front-End
 - Thymeleaf
@@ -57,7 +58,8 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 메시지 �
 
 ## 📄 ERD 설계
 
-![사진 넣을 예정]()
+<img src="https://i.imgur.com/CMClrLq.png" alt="mysql" width="500"/>   
+<img src="https://i.imgur.com/qOSKP77.png" alt="dynamo"/>   
 
 ---
 
@@ -69,7 +71,7 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 메시지 �
 
 ## 🏗️ 시스템 아키텍처
 
-![사진 넣을 예정]()
+![Architecture](https://i.imgur.com/ZNg9Kgn.png)
 
 ---
 
@@ -164,11 +166,11 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 메시지 �
 
 ### 1️⃣ ALB Controller 네트워크 인터페이스 인식 오류
 **원인:** Terraform EKS 모듈 전체에 `karpenter.sh/discovery` 태그 지정으로, 불필요한 보안그룹에 해당 태그가 전파되어 karpenter 인스턴스에 적용됨   
-**해결:** EKS 모듈 전체가 아닌 managed node group에만 해당 태그 적용 
+**해결:** EKS 모듈 전체가 아닌 managed node group에만 해당 태그 적용
 
-### 2️⃣ 문제 
+### 2️⃣ 문제
 **원인:** 원인  
-**해결:** 해결  
+**해결:** 해결
 
 ---
 
