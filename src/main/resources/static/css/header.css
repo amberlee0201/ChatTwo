@@ -1,0 +1,49 @@
+.header {
+    background-color: #0174BE;
+    color: #FFF0CE;
+    padding: 1rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.header-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-right: 1rem
+}
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.user-name {
+    font-weight: bold;
+}
+.header-btn {
+    background-color: #FFC436;
+    color: #0C356A;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+.header-btn:hover {
+    background-color: #FFF0CE;
+}
+.header-btn-logout {
+    background-color: #FFF0CE;
+}
+.header-btn-logout:hover {
+    background-color: #FFC436;
+}

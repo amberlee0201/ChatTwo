@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
     <title>Chat2</title>
     <style>
       body {
@@ -13,6 +14,15 @@
           align-items: center;
           height: 100vh;
           margin: 0;
+          min-height: 100vh;
+          flex-direction: column;
+      }
+      .content-wrapper {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100%;
       }
       .profile-container {
           background-color: #FFF0CE;
@@ -121,40 +131,43 @@
     </style>
   </head>
   <body>
-    <div class="profile-container">
-      <h1>My Profile</h1>
-      <form th:action="@{/users/{userid}(userid=${user.id})}" method="#" enctype="multipart/form-data" th:method="PUT">
-        <input type="hidden" name="id" th:value="${user.id}">
-        <div class="profile-image-container">
-          <img th:src="${user.image}"
-               alt="Profile Image"
-               class="profile-image"
-               id="preview-image">
-          <label for="image-upload" class="image-upload-btn">
-            프로필 변경
-          </label>
-          <input type="file"
-                 id="image-upload"
-                 name="image"
-                 accept="image/*"
-                 onchange="previewImage(event)">
-          <div class="current-file-name" id="file-name"></div>
-        </div>
+  <div th:replace="~{header :: header}"></div>
+    <div class="content-wrapper">
+      <div class="profile-container">
+        <h1>My Profile</h1>
+        <form th:action="@{/users/{userid}(userid=${user.id})}" method="#" enctype="multipart/form-data" th:method="PUT">
+          <input type="hidden" name="id" th:value="${user.id}">
+          <div class="profile-image-container">
+            <img th:src="${user.image}"
+                 alt="Profile Image"
+                 class="profile-image"
+                 id="preview-image">
+            <label for="image-upload" class="image-upload-btn">
+              프로필 변경
+            </label>
+            <input type="file"
+                   id="image-upload"
+                   name="image"
+                   accept="image/*"
+                   onchange="previewImage(event)">
+            <div class="current-file-name" id="file-name"></div>
+          </div>
 
-        <div class="form-group">
-          <label for="name">Name</label>
-          <input type="text"
-                 id="name"
-                 name="name"
-                 th:value="${user.name}"
-                 required>
-        </div>
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text"
+                   id="name"
+                   name="name"
+                   th:value="${user.name}"
+                   required>
+          </div>
 
-        <div class="button-container">
-          <button type="submit" class="submit-btn">저장</button>
-          <a href="/rooms" class="back-btn">채팅 목록</a>
-        </div>
-      </form>
+          <div class="button-container">
+            <button type="submit" class="submit-btn">저장</button>
+            <a href="/rooms" class="back-btn">채팅 목록</a>
+          </div>
+        </form>
+      </div>
     </div>
     <script th:inline="javascript">
       function previewImage(event) {

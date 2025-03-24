@@ -8,7 +8,7 @@
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous"> 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-
+    <link rel="stylesheet" th:href="@{/css/header.css}">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,7 +40,7 @@
         .width-360 {
             width: 60%;
         }   
-        .header {
+        .title {
             color: #FFC436;
             font-size: 24px;
             margin-top: 20px;
@@ -97,7 +97,8 @@
     </script>
 </head>
 <body class="color-db text-center">
-    <h2 class="header">친구 목록/추가</h2>
+    <div th:replace="~{header :: header}"></div>
+    <h2 class="title">친구 목록/추가</h2>
     <div class="card my-3 py-3 mx-auto" style="max-width: 500px;">
         <div class="color-ly">
             <ul class="list-group">
