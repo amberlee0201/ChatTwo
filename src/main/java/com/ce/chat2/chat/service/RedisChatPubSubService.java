@@ -69,7 +69,7 @@ public class RedisChatPubSubService implements MessageListener {
     }
 
     private void updateRoom(Room room, Chat chat){
-        Room updatedRoom = roomRepository.update(Room.from(room, chat));
+        Room updatedRoom = roomRepository.save(Room.from(room, chat));
         roomWebSocketService.notifyUsersAboutUpdatedRoom(RoomResponse.of(updatedRoom));
     }
 }

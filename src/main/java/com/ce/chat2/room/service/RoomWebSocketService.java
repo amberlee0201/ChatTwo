@@ -56,7 +56,7 @@ public class RoomWebSocketService {
     }
 
     @Async
-    public void sendInitialRoom(Integer userId, RoomListResponse response){
+    public void sendInitialRoom(Integer userId, RoomListResponse response) {
         messagingTemplate.convertAndSend(userDestPrefix + userId, response);
     }
 
