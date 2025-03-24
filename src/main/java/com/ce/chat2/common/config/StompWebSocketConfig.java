@@ -24,7 +24,9 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Value("${cloud.aws.url}")
     private String url;
     @Value("${file.max.size}")
-    private int maxSize;
+    private int maxFileSize;
+    @Value("${file.max.buffer-size}")
+    private int maxBufferSize;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -48,8 +50,8 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
     @Override
     public void configureWebSocketTransport(WebSocketTransportRegistration registration){
-        registration.setMessageSizeLimit(maxSize);
-        registration.setSendBufferSizeLimit(maxSize);
+        registration.setMessageSizeLimit(maxFileSize);
+        registration.setSendBufferSizeLimit(maxBufferSize);
         registration.setSendTimeLimit(20000);
     }
     // ✅ 사용자 인증 정보를 WebSocket 세션에 연동
