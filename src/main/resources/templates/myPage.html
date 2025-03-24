@@ -159,12 +159,33 @@
     <script th:inline="javascript">
       function previewImage(event) {
           const file = event.target.files[0];
+
           if (file) {
+              const MAX_FILE_SIZE = [[${@environment.getProperty('file.max.size')}]]; // 10MB
+              const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/pjpeg']; // 허용된 파일 타입
+
+              // 파일 크기 체크
+              if (file.size > MAX_FILE_SIZE) {
+                  alert("최대 파일 크기를 초과했습니다.");
+                  event.target.value = ""; // 파일 선택 초기화
+                  return;
+              }
+
+              // 파일 타입 체크
+              if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+                  alert("허용되지 않은 파일 형식입니다.");
+                  event.target.value = ""; // 파일 선택 초기화
+                  return;
+              }
+
+              // 파일 미리보기
               const reader = new FileReader();
               reader.onload = function(e) {
                   document.getElementById('preview-image').src = e.target.result;
               }
               reader.readAsDataURL(file);
+
+              // 파일 이름 표시
               document.getElementById('file-name').textContent = file.name;
           }
       }

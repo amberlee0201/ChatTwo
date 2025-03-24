@@ -7,8 +7,10 @@ import com.ce.chat2.chat.service.ChatService;
 import com.ce.chat2.chat.service.ReadCountService;
 import com.ce.chat2.chat.service.RedisChatPubSubService;
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
+import com.ce.chat2.common.s3.S3Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -16,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -25,6 +28,7 @@ public class ChatController {
     private final ChatService chatService;
     private final RedisChatPubSubService redisChatPubSubService;
     private final ReadCountService readCountService;
+    private final S3Service s3Service;
 
     @GetMapping("/chats/{roomId}")
     String toChat(@AuthenticationPrincipal Oauth2UserDetails loginUser,
@@ -45,8 +49,16 @@ public class ChatController {
     public void sendMessage(
         @DestinationVariable("roomId") String roomId,
         ChatRequestDto chatRequestDto
-    ) throws JsonProcessingException {
-        chatRequestDto.setRoomId(roomId);
+    ) throws IOException {
+        chatRequestDto.withRoomId(roomId);
+        if(StringUtils.hasText(chatRequestDto.getFileData()) &&
+            StringUtils.hasText(chatRequestDto.getFileName()) &&
+            StringUtils.hasText(chatRequestDto.getFileType())
+        ){
+            chatRequestDto.withFile(s3Service.uploadImage(chatRequestDto.getFileData(),
+            chatRequestDto.getFileName(), chatRequestDto.getFileType()));
+        }
+
         redisChatPubSubService.publish("chat"+roomId, chatRequestDto);
     }
 

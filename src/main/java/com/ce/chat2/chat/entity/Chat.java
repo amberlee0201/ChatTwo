@@ -36,8 +36,11 @@ public class Chat {
     @Getter(onMethod_ = {@DynamoDbAttribute("Content")})
     private String content;
 
-    @Getter(onMethod_ = {@DynamoDbAttribute("File")})
-    private ChatFile file;
+    @Getter(onMethod_ = {@DynamoDbAttribute("FilePath")})
+    private String filePath;
+
+    @Getter(onMethod_ = {@DynamoDbAttribute("FileType")})
+    private String fileType;
 
     @Getter(onMethod_ = {@DynamoDbAttribute("CreatedAt"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-CreatedAt-index" })})
     private Instant createdAt;
@@ -50,7 +53,8 @@ public class Chat {
             .chatId(chatId)
             .senderId(chatRequestDto.getUserId())
             .content(chatRequestDto.getContent())
-            .file(null) // TODO file 업로드 확인 후  변경
+            .filePath(chatRequestDto.getFilePath())
+            .fileType(chatRequestDto.getFileType())
             .createdAt(now)
             .build();
     }
