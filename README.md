@@ -169,7 +169,7 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 �
 **해결:** EKS 모듈 전체가 아닌 managed node group에만 해당 태그 적용
 
 ### 2️⃣ Karpenter 노드 생성 오류
-**원인:** Karpenter 구버전의 버그로 unknown capacity type capacity-block 오류 발생
+**원인:** Karpenter 구버전의 버그로 unknown capacity type capacity-block 오류 발생   
 **해결:** Karpenter를 최신 버전으로 업그레이드. 단, 새 버전에서 변경된 api에 따라 NodePool, EC2NodeClass 등을 설정(기존 API: Provisioner, AWSNodeTemplate).
 
 ---
