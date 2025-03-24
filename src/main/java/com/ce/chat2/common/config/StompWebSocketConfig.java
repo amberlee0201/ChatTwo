@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -22,6 +23,10 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${cloud.aws.url}")
     private String url;
+    @Value("${file.max.size}")
+    private int maxFileSize;
+    @Value("${file.max.buffer-size}")
+    private int maxBufferSize;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -43,7 +48,12 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes("/room-pub", "/chat-pub", "/notification-pub");
         registry.enableSimpleBroker("/room-sub", "/chat-sub", "/topic");
     }
-
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration){
+        registration.setMessageSizeLimit(maxFileSize);
+        registration.setSendBufferSizeLimit(maxBufferSize);
+        registration.setSendTimeLimit(20000);
+    }
     // ✅ 사용자 인증 정보를 WebSocket 세션에 연동
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
