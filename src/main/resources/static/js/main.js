@@ -59,6 +59,9 @@ function renderChatList() {
                            </div>`;
   } else {
     chatRooms.forEach(room => {
+
+      const html = createChatRoomItem(room);  // ✅ DOM 문자열 생성
+
       chatList.insertAdjacentHTML('beforeend', createChatRoomItem(room));
     });
   }

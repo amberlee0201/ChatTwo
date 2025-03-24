@@ -1,0 +1,10 @@
+<header th:fragment="header" class="header">
+  <div class="header-title">Chat2</div>
+  <div class="header-actions">
+    <div sec:authorize="isAuthenticated()" class="user-info">
+      <!-- name 대신 principal.user.name 사용 -->
+      <span class="user-name" th:text="${#authentication.principal.user.name}">사용자</span>
+      <a href="/users/logout" class="header-btn header-btn-logout">로그아웃</a>
+    </div>
+  </div>
+</header>
