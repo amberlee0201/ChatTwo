@@ -37,6 +37,7 @@ public class ChatController {
         model.addAttribute("roomId", roomId);
         model.addAttribute("chatHistory", chatRoomDto.getChatResponseDtoList());
         model.addAttribute("participants", chatRoomDto.getParticipants());
+        model.addAttribute("lastEvaluatedKey", chatRoomDto.getLastEvaluatedKey());
         return "chat";
     }
 
@@ -46,11 +47,7 @@ public class ChatController {
         ChatRequestDto chatRequestDto
     ) throws JsonProcessingException {
         chatRequestDto.setRoomId(roomId);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        String req = objectMapper.writeValueAsString(chatRequestDto);
-
-        redisChatPubSubService.publish("room"+roomId, req);
+        redisChatPubSubService.publish("chat"+roomId, chatRequestDto);
     }
 
     @MessageMapping("/count/{roomId}")

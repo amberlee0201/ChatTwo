@@ -1,8 +1,10 @@
 package com.ce.chat2.follow.service;
 
+import com.ce.chat2.notification.event.FriendFollowedEvent;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FollowService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher applicationEventPublisher; // ✅ 추가됨
 
     public List<UserListResponse> getFollow(User currentUser) {
 
@@ -53,6 +56,8 @@ public class FollowService {
         }
 
         followRepository.save(follow);
+
+        applicationEventPublisher.publishEvent(new FriendFollowedEvent(currentUser, friend));
     }
 
     public void deleteFollow(User currentUser, Integer uid) {
