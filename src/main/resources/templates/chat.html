@@ -82,11 +82,13 @@
       flex-direction: row-reverse;
     }
     .message {
-      max-width: 70%;
+      max-width: 85%;
       padding: 0.75rem 1rem;
       border-radius: 1rem;
       position: relative;
       word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
     .message-time {
       font-size: 0.7rem;
@@ -95,6 +97,8 @@
       text-align: right;
     }
     .message-received {
+      max-width: 100%; /* .message-content-wrapper 안에서 전폭 사용하도록 */
+      word-break: break-word;
       align-self: flex-start;
       background-color: #0174BE;
       color: #FFF0CE;
@@ -256,8 +260,13 @@
       color: #0C356A;
     }
     .message-content-wrapper {
-      display: flex;
+      display: inline-flex;
       flex-direction: column;
+      max-width: 85%;
+      width: fit-content;
+      /*max-width: 100%;*/
+      /*display: flex;*/
+      /*flex-direction: column;*/
     }
     .loading-indicator {
       text-align: center;

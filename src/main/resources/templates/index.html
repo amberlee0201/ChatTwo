@@ -49,9 +49,22 @@
         height: 24px;
         margin-right: 10px;
     }
+    .logo-icon {
+      width: 240px;
+      height: 240px;
+      object-fit: cover;
+      margin-bottom: 3rem;
+    }
+    .login-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
   </style>
 </head>
   <body>
+  <div class="login-wrapper">
+    <img th:src="@{/images/chat2_logo.jpg}" alt="Chat2 Logo" class="logo-icon">
     <div class="login-container">
       <h1>Welcome to Chat2</h1>
       <a href="/oauth2/authorization/google" class="google-btn">
@@ -59,5 +72,6 @@
         login
       </a>
     </div>
+  </div>
   </body>
 </html>
