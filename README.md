@@ -4,7 +4,7 @@
 
 **ChatTwo**는 카카오톡을 벤치마킹한 실시간 채팅 서비스입니다.  
 WebSocket + Redis Pub/Sub 구조를 통해 실시간 통신을 구현하고,  
-Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 파일 전송, 메시지 읽음 처리 기능 등을 제공합니다.  
+Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 파일 전송, 메시지 읽음 처리 기능 등을 제공합니다.  
 전체 인프라는 AWS 상에 구축되었으며, Terraform과 ArgoCD(GitOps)를 통해 선언적으로 관리되고, EKS(Kubernetes) 환경에서 실행됩니다.
 ---
 
@@ -15,18 +15,18 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 �
 - 친구 추가, 삭제, 검색
 - 채팅방 생성, 조회, 입장, 나가기, 친구 초대
 - 실시간 채팅 (WebSocket + STOMP + Redis Pub/Sub)
-- 이미지 파일 전송, 메시지 읽음 처리, 무한 스크롤 페이징
+- 파일 전송, 메시지 읽음 처리, 무한 스크롤 페이징
 - 알림 기능 (친구 추가, 새 메시지 등)
 ---
 
 ## 🔥 팀원 역할
 
-| 이름  | 담당 업무                                                   |
-|-----|---------------------------------------------------------|
-| 강수재 |           |
-| 강대현 |  |
-| 김동현 |  |
-| 허선호 | 회원 관리 기능, 인프라 구축 보조 |
+| 이름  | 담당 업무                                                          |
+|-----|----------------------------------------------------------------|
+| 강수재 | 채팅방 관련 기능 / DynamoDB 기초 설계 /  Terraform AWS 인프라 / Jira 프로젝트 관리 |
+| 강대현 | 실시간 친구 추가(구독)기능, WebSocket + STOMP기반 설계 및 구현                   |
+| 김동현 | Back-end / OAuth / CI-CD / WebSocket / 채팅 기능 / GitHub 관리       |
+| 허선호 | 회원 관리 기능, 인프라 구축 보조                                            |
 
 ---
 
@@ -39,7 +39,7 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 �
 - Redis (Session + Pub/Sub)
 - MySQL 8.0 (회원, 친구 관리)
 - DynamoDB (채팅방 정보 및 메시지 저장)
-- S3 (프로필 사진, 채팅 이미지 저장)
+- S3 (프로필 사진, 채팅 파일 저장)
 
 ### Front-End
 - Thymeleaf
@@ -58,20 +58,23 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 �
 
 ## 📄 ERD 설계
 
-<img src="https://i.imgur.com/CMClrLq.png" alt="mysql" width="500"/>   
-<img src="https://i.imgur.com/qOSKP77.png" alt="dynamo"/>   
+### MySQL
+<img src="https://imgur.com/CMClrLq.png" alt="mysql" width="500"/>
+
+### DynamoDB
+<img src="https://imgur.com/qOSKP77.png" alt="dynamo"/>   
 
 ---
 
 ## 📌 API 명세서
 
-![사진 넣을 예정]()
+![API](https://imgur.com/LtvZfW5.png)
 
 ---
 
 ## 🏗️ 시스템 아키텍처
 
-![Architecture](https://i.imgur.com/ZNg9Kgn.png)
+![Architecture](https://imgur.com/ZNg9Kgn.png)
 
 ---
 
@@ -164,19 +167,33 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 �
 ---
 ## 🌟 트러블슈팅
 
-### 1️⃣ ALB Controller 네트워크 인터페이스 인식 오류
+### 1️⃣ Karpenter 노드 생성 오류
+**원인:** Karpenter 구버전의 버그로 unknown capacity type capacity-block 오류 발생   
+**해결:** Karpenter를 최신 버전으로 업그레이드. 단, 새 버전에서 변경된 api에 따라 NodePool, EC2NodeClass 등을 설정(기존 API: Provisioner, AWSNodeTemplate).
+
+### 2️⃣ ALB Controller 네트워크 인터페이스 인식 오류
 **원인:** Terraform EKS 모듈 전체에 `karpenter.sh/discovery` 태그 지정으로, 불필요한 보안그룹에 해당 태그가 전파되어 karpenter 인스턴스에 적용됨   
 **해결:** EKS 모듈 전체가 아닌 managed node group에만 해당 태그 적용
 
-### 2️⃣ Karpenter 노드 생성 오류
-**원인:** Karpenter 구버전의 버그로 unknown capacity type capacity-block 오류 발생   
-**해결:** Karpenter를 최신 버전으로 업그레이드. 단, 새 버전에서 변경된 api에 따라 NodePool, EC2NodeClass 등을 설정(기존 API: Provisioner, AWSNodeTemplate).
+### 3️⃣ K6 STOMP 부하테스트 - STOMP 미지원 이슈
+**원인:** K6가 WebSocket은 지원하지만, STOMP 프로토콜은 기본적으로 지원하지 않음.  
+**해결:** STOMP 프로토콜을 직접 WebSocket 내부에서 구현하여 테스트를 수행.  
+또한 STOMP 연결과 메시지 송수신이 가능한 K6 데모 프로젝트를 작성하여 테스트 자동화 기반 마련.
+
+### 4️⃣ 알림 삭제 요청 후에도 클라이언트에서 알림이 계속 표시되는 오류
+**원인:** DB에서 알림이 실제 삭제되지 않았거나(Soft Delete 미적용), 프론트엔드에서 필터링되지 않아 발생.  
+**해결:** 알림 테이블에 isDeleted 필드를 추가하여 Soft Delete 적용.  
+JavaScript 로직을 수정하여 삭제된 알림을 필터링하고, 삭제 후 실시간으로 UI가 갱신되도록 구현
+
+### 5️⃣ 새 메시지 도착 시 채팅방 목록이 갱신되지 않음
+**원인:** 채팅방 정보 업데이트 누락 또는 프론트엔드의 최신 정렬 로직 미작동  
+**해결:** 메시지 저장 시 해당 채팅방 정보를 함께 업데이트, Redis Pub/Sub를 통해 채팅방 목록을 구독 중인 사용자들에게 최신 메시지 정보를 포함해 전송  
+프론트엔드에서 목록을 실시간 갱신 및 최신순 정렬
 
 ---
 
 ## 📝 향후 계획
 
-- 미흡했던 사항, 시간내에 구현하지 못했던 기능, 하고 싶었는데 못했던 것들?
 - `Helm Chart`와 `Kustomize` 등을 활용한 EKS 초기 설정 자동화
 - Application Load Balancer에 대한 IPv6/IPv4 듀얼 스택 주소 적용
 - 더 신속한 Pod auto scheduling 방안 고려
