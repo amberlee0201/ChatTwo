@@ -58,8 +58,6 @@ public class RedisChatPubSubService implements MessageListener {
             User sender = userRepository.findById(dto.getUserId()).orElseThrow(UserNotFound::new);
             Chat chat = Chat.of(dto);
 
-            roomService.updateLatestMessage(dto.getRoomId(), chat.getContent(), chat.getCreatedAt());
-
             List<Participation> participationList = participationRepository.findAllByRoomId(dto.getRoomId());
             simpMessageSendingOperations.convertAndSend("/chat-sub/"+dto.getRoomId(),
                 ChatResponseDto.of(chat, sender, participationList.size()));
