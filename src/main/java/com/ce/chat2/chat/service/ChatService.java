@@ -35,7 +35,7 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final UserRepository userRepository;
 
-    public ChatRoomDto getChatHistory(String roomId) {
+    public ChatRoomDto getChatHistory(String roomId, int userId) {
         roomRepository.findRoomById(roomId).orElseThrow(RoomNotFoundException::new);
 
         List<Participation> allByRoomId = participationRepository.findAllByRoomIdSortByLastReadChatTimeDesc(roomId);
