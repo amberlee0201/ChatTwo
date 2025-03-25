@@ -6,6 +6,7 @@
 WebSocket + Redis Pub/Sub 구조를 통해 실시간 통신을 구현하고,  
 Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 파일 전송, 메시지 읽음 처리 기능 등을 제공합니다.  
 전체 인프라는 AWS 상에 구축되었으며, Terraform과 ArgoCD(GitOps)를 통해 선언적으로 관리되고, EKS(Kubernetes) 환경에서 실행됩니다.
+
 ---
 
 ## 🔑 주요 기능
