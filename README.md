@@ -168,9 +168,9 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 �
 **원인:** Terraform EKS 모듈 전체에 `karpenter.sh/discovery` 태그 지정으로, 불필요한 보안그룹에 해당 태그가 전파되어 karpenter 인스턴스에 적용됨   
 **해결:** EKS 모듈 전체가 아닌 managed node group에만 해당 태그 적용
 
-### 2️⃣ 문제
-**원인:** 원인  
-**해결:** 해결
+### 2️⃣ Karpenter 노드 생성 오류
+**원인:** Karpenter 구버전의 버그로 unknown capacity type capacity-block 오류 발생   
+**해결:** Karpenter를 최신 버전으로 업그레이드. 단, 새 버전에서 변경된 api에 따라 NodePool, EC2NodeClass 등을 설정(기존 API: Provisioner, AWSNodeTemplate).
 
 ---
 
@@ -179,5 +179,5 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 이미지 �
 - 미흡했던 사항, 시간내에 구현하지 못했던 기능, 하고 싶었는데 못했던 것들?
 - `Helm Chart`와 `Kustomize` 등을 활용한 EKS 초기 설정 자동화
 - Application Load Balancer에 대한 IPv6/IPv4 듀얼 스택 주소 적용
-
+- 더 신속한 Pod auto scheduling 방안 고려
 ---
