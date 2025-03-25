@@ -1,5 +1,6 @@
 package com.ce.chat2.user.service;
 
+import com.ce.chat2.common.exception.UnsupportedFileFormatException;
 import com.ce.chat2.common.oauth.Oauth2UserDetails;
 import com.ce.chat2.common.s3.S3FileDto;
 import com.ce.chat2.common.s3.S3Service;
@@ -13,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -38,6 +38,19 @@ public class UserService {
         if(loginUser.getUser().getId() != id) throw new UnAuthorizedUser();
         User savedUser = userRepository.findById(id)
             .orElseThrow(UserNotFound::new);
+
+        if(image.isEmpty()){
+            savedUser.updateInfo(name);
+            return savedUser;
+        }
+
+        String contentType = image.getContentType();
+        if (contentType == null ||
+            (!contentType.equals("image/jpeg") &&
+            !contentType.equals("image/pjpeg") &&
+            !contentType.equals("image/png"))) {
+            throw new UnsupportedFileFormatException();
+        }
 
         S3FileDto dto;
         if(StringUtils.hasText(savedUser.getFileName())){

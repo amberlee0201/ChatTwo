@@ -26,6 +26,7 @@ import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -40,8 +41,12 @@ public class RedisChatPubSubService implements MessageListener {
     private final RoomWebSocketService roomWebSocketService;
     private final RoomService roomService;
 
-    public void publish(String channel, String msg){
-        stringRedisTemplate.convertAndSend(channel, msg);
+    public void publish(String channel, ChatRequestDto dto) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Room room = roomRepository.findRoomById(dto.getRoomId()).orElseThrow(RoomNotFoundException::new);
+        Chat chat = chatRepository.save(Chat.of(dto));
+        updateRoom(room, chat);
+        stringRedisTemplate.convertAndSend(channel, objectMapper.writeValueAsString(dto));
     }
 
     @Override
@@ -51,15 +56,11 @@ public class RedisChatPubSubService implements MessageListener {
         try{
             ChatRequestDto dto = om.readValue(payload, ChatRequestDto.class);
             User sender = userRepository.findById(dto.getUserId()).orElseThrow(UserNotFound::new);
-            Room room = roomRepository.findRoomById(dto.getRoomId()).orElseThrow(RoomNotFoundException::new);
-            Chat chat = chatRepository.save(Chat.of(dto));
-
-            updateRoom(room, chat);
+            Chat chat = Chat.of(dto);
 
             roomService.updateLatestMessage(dto.getRoomId(), chat.getContent(), chat.getCreatedAt());
 
             List<Participation> participationList = participationRepository.findAllByRoomId(dto.getRoomId());
-
             simpMessageSendingOperations.convertAndSend("/chat-sub/"+dto.getRoomId(),
                 ChatResponseDto.of(chat, sender, participationList.size()));
         }catch (JsonProcessingException e){
@@ -68,7 +69,7 @@ public class RedisChatPubSubService implements MessageListener {
     }
 
     private void updateRoom(Room room, Chat chat){
-        Room updatedRoom = roomRepository.update(Room.from(room, chat));
+        Room updatedRoom = roomRepository.save(Room.from(room, chat));
         roomWebSocketService.notifyUsersAboutUpdatedRoom(RoomResponse.of(updatedRoom));
     }
 }

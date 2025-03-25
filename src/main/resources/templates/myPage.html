@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
     <title>Chat2</title>
     <style>
       body {
@@ -13,6 +14,15 @@
           align-items: center;
           height: 100vh;
           margin: 0;
+          min-height: 100vh;
+          flex-direction: column;
+      }
+      .content-wrapper {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100%;
       }
       .profile-container {
           background-color: #FFF0CE;
@@ -121,50 +131,74 @@
     </style>
   </head>
   <body>
-    <div class="profile-container">
-      <h1>My Profile</h1>
-      <form th:action="@{/users/{userid}(userid=${user.id})}" method="#" enctype="multipart/form-data" th:method="PUT">
-        <input type="hidden" name="id" th:value="${user.id}">
-        <div class="profile-image-container">
-          <img th:src="${user.image}"
-               alt="Profile Image"
-               class="profile-image"
-               id="preview-image">
-          <label for="image-upload" class="image-upload-btn">
-            프로필 변경
-          </label>
-          <input type="file"
-                 id="image-upload"
-                 name="image"
-                 accept="image/*"
-                 onchange="previewImage(event)">
-          <div class="current-file-name" id="file-name"></div>
-        </div>
+  <div th:replace="~{header :: header}"></div>
+    <div class="content-wrapper">
+      <div class="profile-container">
+        <h1>My Profile</h1>
+        <form th:action="@{/users/{userid}(userid=${user.id})}" method="#" enctype="multipart/form-data" th:method="PUT">
+          <input type="hidden" name="id" th:value="${user.id}">
+          <div class="profile-image-container">
+            <img th:src="${user.image}"
+                 alt="Profile Image"
+                 class="profile-image"
+                 id="preview-image">
+            <label for="image-upload" class="image-upload-btn">
+              프로필 변경
+            </label>
+            <input type="file"
+                   id="image-upload"
+                   name="image"
+                   accept="image/*"
+                   onchange="previewImage(event)">
+            <div class="current-file-name" id="file-name"></div>
+          </div>
 
-        <div class="form-group">
-          <label for="name">Name</label>
-          <input type="text"
-                 id="name"
-                 name="name"
-                 th:value="${user.name}"
-                 required>
-        </div>
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text"
+                   id="name"
+                   name="name"
+                   th:value="${user.name}"
+                   required>
+          </div>
 
-        <div class="button-container">
-          <button type="submit" class="submit-btn">저장</button>
-          <a href="/rooms" class="back-btn">채팅 목록</a>
-        </div>
-      </form>
+          <div class="button-container">
+            <button type="submit" class="submit-btn">저장</button>
+            <a href="/rooms" class="back-btn">채팅 목록</a>
+          </div>
+        </form>
+      </div>
     </div>
     <script th:inline="javascript">
       function previewImage(event) {
           const file = event.target.files[0];
+
           if (file) {
+              const MAX_FILE_SIZE = [[${@environment.getProperty('file.max.size')}]]; // 10MB
+              const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/pjpeg']; // 허용된 파일 타입
+
+              // 파일 크기 체크
+              if (file.size > MAX_FILE_SIZE) {
+                  alert("최대 파일 크기를 초과했습니다.");
+                  event.target.value = ""; // 파일 선택 초기화
+                  return;
+              }
+
+              // 파일 타입 체크
+              if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+                  alert("허용되지 않은 파일 형식입니다.");
+                  event.target.value = ""; // 파일 선택 초기화
+                  return;
+              }
+
+              // 파일 미리보기
               const reader = new FileReader();
               reader.onload = function(e) {
                   document.getElementById('preview-image').src = e.target.result;
               }
               reader.readAsDataURL(file);
+
+              // 파일 이름 표시
               document.getElementById('file-name').textContent = file.name;
           }
       }

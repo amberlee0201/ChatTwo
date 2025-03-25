@@ -3,7 +3,10 @@ package com.ce.chat2.common.s3;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.util.Base64;
+import com.ce.chat2.common.exception.MaxFileSizeExceededException;
 import com.ce.chat2.common.exception.UnavailableS3;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,20 +23,45 @@ public class S3Service {
     private String bucket;
     @Value("${cloud.aws.cdn}")
     private String cdn;
+    @Value("${file.max.size}")
+    private int fileMaxSize;
+    @Value("${file.chat.dir}")
+    private String chatDir;
+    @Value("${file.profile.dir}")
+    private String profileDir;
 
     private final AmazonS3 amazonS3;
 
     public S3FileDto uploadImage(MultipartFile file) throws IOException {
         String originalFilename = file.getOriginalFilename();
-        String fileName = UUID.randomUUID() + "_" + originalFilename;
+        if(file.getSize() > fileMaxSize) throw new MaxFileSizeExceededException();
 
+        String fileName = profileDir+UUID.randomUUID() + "_" + originalFilename;
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(file.getSize());
         metadata.setContentType(file.getContentType());
 
         try{
             amazonS3.putObject(bucket, fileName, file.getInputStream(), metadata);
-            return S3FileDto.of(cdn+fileName, fileName);
+            return S3FileDto.of(cdn+fileName, fileName, file.getContentType());
+        }catch (AmazonServiceException e){
+            throw new UnavailableS3(e.getMessage());
+        }
+    }
+
+    public S3FileDto uploadImage(String base64FileData, String fileName, String fileType) {
+        byte[] decodedBytes = Base64.decode(base64FileData);
+        if(decodedBytes.length >= fileMaxSize) throw new MaxFileSizeExceededException();
+
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(decodedBytes);
+        fileName = chatDir+UUID.randomUUID()+"_"+fileName;
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(decodedBytes .length);
+        metadata.setContentType(fileType);
+        try{
+            amazonS3.putObject(bucket, fileName, byteArrayInputStream, metadata);
+            return S3FileDto.of(cdn+fileName, fileName, fileType);
         }catch (AmazonServiceException e){
             throw new UnavailableS3(e.getMessage());
         }

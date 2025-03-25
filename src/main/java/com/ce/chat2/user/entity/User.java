@@ -63,4 +63,7 @@ public class User extends BaseEntity implements Serializable {
         this.image = dto.getFilePath();
         this.fileName = dto.getFileName();
     }
+    public void updateInfo(String username){
+        this.name = username;
+    }
 }
