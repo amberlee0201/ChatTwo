@@ -644,12 +644,12 @@
     }
 
     // 읽지 않은 사용자 수가 있는 경우 표시
-    if (message.readCnt && message.readCnt > 0) {
-      const readCountElement = document.createElement('div');
-      readCountElement.className = 'read-count';
-      readCountElement.textContent = message.readCnt;
-      messageWrapper.appendChild(readCountElement);
-    }
+<!--    if (message.readCnt && message.readCnt > 0) {-->
+<!--      const readCountElement = document.createElement('div');-->
+<!--      readCountElement.className = 'read-count';-->
+<!--      readCountElement.textContent = message.readCnt;-->
+<!--      messageWrapper.appendChild(readCountElement);-->
+<!--    }-->
 
     return messageWrapper;
   }
@@ -807,7 +807,7 @@
     const readCountRequest = {
       "chatTime": maxChatTime
     };
-    stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));
+<!--    stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));-->
 
     // 메시지 수신
     stompClient.subscribe(`/chat-sub/${roomId}`, function (messageOutput) {
@@ -819,49 +819,49 @@
         "chatTime": message.timestamp
       };
       // 읽음 처리
-      stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));
+<!--      stompClient.send(`/chat-pub/count/${roomId}`, {}, JSON.stringify(readCountRequest));-->
     });
 
     // 읽음 이벤트 수신
-    stompClient.subscribe(`/chat-sub/count/${roomId}`, function (readCountResponse) {
-      const readCountRes = JSON.parse(readCountResponse.body);
-      const firstReadChatTime = Number(readCountRes.firstReadChatTime);
-      const lastReadChatTime = Number(readCountRes.lastReadChatTime);
+<!--    stompClient.subscribe(`/chat-sub/count/${roomId}`, function (readCountResponse) {-->
+<!--      const readCountRes = JSON.parse(readCountResponse.body);-->
+<!--      const firstReadChatTime = Number(readCountRes.firstReadChatTime);-->
+<!--      const lastReadChatTime = Number(readCountRes.lastReadChatTime);-->
 
-      // 메시지 목록에서 해당 범위의 메시지 readCnt 감소
-      document.querySelectorAll('.message-wrapper').forEach(messageWrapper => {
-        const chatTime = Number(messageWrapper.getAttribute('data-message-time'));
+<!--      // 메시지 목록에서 해당 범위의 메시지 readCnt 감소-->
+<!--      document.querySelectorAll('.message-wrapper').forEach(messageWrapper => {-->
+<!--        const chatTime = Number(messageWrapper.getAttribute('data-message-time'));-->
 
-        if (isNaN(chatTime)) {
-          return;
-        }
+<!--        if (isNaN(chatTime)) {-->
+<!--          return;-->
+<!--        }-->
 
 
-        if (chatTime >= firstReadChatTime && chatTime <= lastReadChatTime) {
-          const readCountElement = messageWrapper.querySelector('.read-count');
+<!--        if (chatTime >= firstReadChatTime && chatTime <= lastReadChatTime) {-->
+<!--          const readCountElement = messageWrapper.querySelector('.read-count');-->
 
-          if (readCountElement) {
-            let currentReadCnt = Number(readCountElement.textContent);
+<!--          if (readCountElement) {-->
+<!--            let currentReadCnt = Number(readCountElement.textContent);-->
 
-            if (isNaN(currentReadCnt)) {
-              return;
-            }
+<!--            if (isNaN(currentReadCnt)) {-->
+<!--              return;-->
+<!--            }-->
 
-            if (currentReadCnt > 0) {
-              currentReadCnt -= 1;
+<!--            if (currentReadCnt > 0) {-->
+<!--              currentReadCnt -= 1;-->
 
-              if (currentReadCnt === 0) {
-                readCountElement.remove();
-              } else {
-                readCountElement.textContent = currentReadCnt;
-              }
-            }
-          } else {
-            console.warn(`No read-count element found for chatTime: ${chatTime}`);
-          }
-        }
-      });
-    });
+<!--              if (currentReadCnt === 0) {-->
+<!--                readCountElement.remove();-->
+<!--              } else {-->
+<!--                readCountElement.textContent = currentReadCnt;-->
+<!--              }-->
+<!--            }-->
+<!--          } else {-->
+<!--            console.warn(`No read-count element found for chatTime: ${chatTime}`);-->
+<!--          }-->
+<!--        }-->
+<!--      });-->
+<!--    });-->
   });
 
   // 메시지 보내기
