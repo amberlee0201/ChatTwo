@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <title>Chat2</title>
+    <style>
+      body {
+          font-family: Arial, sans-serif;
+          background-color: #0C356A;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+          min-height: 100vh;
+          flex-direction: column;
+      }
+      .content-wrapper {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100%;
+      }
+      .profile-container {
+          background-color: #FFF0CE;
+          padding: 2rem;
+          border-radius: 8px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          width: 400px;
+      }
+      h1 {
+          color: #0C356A;
+          text-align: center;
+          margin-bottom: 2rem;
+      }
+      .profile-image-container {
+          text-align: center;
+          margin-bottom: 2rem;
+      }
+      .profile-image {
+          width: 200px;
+          height: 200px;
+          object-fit: cover;
+          border: 3px solid #0174BE;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .form-group {
+          margin-bottom: 1.5rem;
+      }
+      label {
+          display: block;
+          color: #0C356A;
+          margin-bottom: 0.5rem;
+          font-weight: bold;
+      }
+      input[type="text"] {
+          width: 100%;
+          padding: 0.5rem;
+          border: 2px solid #0174BE;
+          border-radius: 4px;
+          box-sizing: border-box;
+      }
+      input[type="file"] {
+          display: none;
+      }
+      .image-upload-btn {
+          background-color: #0174BE;
+          color: #FFF0CE;
+          padding: 0.5rem 1rem;
+          border-radius: 4px;
+          cursor: pointer;
+          display: inline-block;
+          margin-top: 1rem;
+          transition: background-color 0.3s ease;
+      }
+      .image-upload-btn:hover {
+          background-color: #0C356A;
+      }
+      .submit-btn {
+          background-color: #0174BE;
+          color: #FFF0CE;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          width: 100%;
+          transition: background-color 0.3s ease;
+      }
+      .current-file-name {
+          color: #0174BE;
+          font-size: 0.9rem;
+          margin-top: 0.5rem;
+      }
+      .button-container {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 1rem;
+          gap: 1rem; /* 버튼 사이의 간격 */
+      }
+      .submit-btn, .back-btn {
+          flex: 1; /* 버튼들이 동일한 너비를 가지도록 설정 */
+          padding: 0.75rem 1.5rem;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: background-color 0.3s ease;
+          text-align: center;
+          text-decoration: none;
+          display: inline-block;
+      }
+      .submit-btn {
+          background-color: #0174BE;
+          color: #FFF0CE;
+      }
+      .submit-btn:hover {
+          background-color: #0C356A;
+      }
+      .back-btn {
+          background-color: #FFC436;
+          color: #0C356A;
+      }
+      .back-btn:hover {
+          background-color: #0C356A;
+          color: #FFF0CE;
+      }
+    </style>
+  </head>
+  <body>
+  <div th:replace="~{header :: header}"></div>
+    <div class="content-wrapper">
+      <div class="profile-container">
+        <h1>My Profile</h1>
+        <form th:action="@{/users/{userid}(userid=${user.id})}" method="#" enctype="multipart/form-data" th:method="PUT">
+          <input type="hidden" name="id" th:value="${user.id}">
+          <div class="profile-image-container">
+            <img th:src="${user.image}"
+                 alt="Profile Image"
+                 class="profile-image"
+                 id="preview-image">
+            <label for="image-upload" class="image-upload-btn">
+              프로필 변경
+            </label>
+            <input type="file"
+                   id="image-upload"
+                   name="image"
+                   accept="image/*"
+                   onchange="previewImage(event)">
+            <div class="current-file-name" id="file-name"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text"
+                   id="name"
+                   name="name"
+                   th:value="${user.name}"
+                   required>
+          </div>
+
+          <div class="button-container">
+            <button type="submit" class="submit-btn">저장</button>
+            <a href="/rooms" class="back-btn">채팅 목록</a>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script th:inline="javascript">
+      function previewImage(event) {
+          const file = event.target.files[0];
+
+          if (file) {
+              const MAX_FILE_SIZE = [[${@environment.getProperty('file.max.size')}]]; // 10MB
+              const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/pjpeg']; // 허용된 파일 타입
+
+              // 파일 크기 체크
+              if (file.size > MAX_FILE_SIZE) {
+                  alert("최대 파일 크기를 초과했습니다.");
+                  event.target.value = ""; // 파일 선택 초기화
+                  return;
+              }
+
+              // 파일 타입 체크
+              if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+                  alert("허용되지 않은 파일 형식입니다.");
+                  event.target.value = ""; // 파일 선택 초기화
+                  return;
+              }
+
+              // 파일 미리보기
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                  document.getElementById('preview-image').src = e.target.result;
+              }
+              reader.readAsDataURL(file);
+
+              // 파일 이름 표시
+              document.getElementById('file-name').textContent = file.name;
+          }
+      }
+    </script>
+  </body>
+</html>

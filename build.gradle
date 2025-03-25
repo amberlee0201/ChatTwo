@@ -26,9 +26,13 @@ repositories {
 dependencies {
 	//spring
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	//s3
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 
 	//security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -36,6 +40,7 @@ dependencies {
 
 	//redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.session:spring-session-data-redis'
 
 	//thymeleaf
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
@@ -43,6 +48,13 @@ dependencies {
 
 	//db
 	runtimeOnly 'com.mysql:mysql-connector-j'
+
+	// aws dynamodb
+	implementation platform('software.amazon.awssdk:bom:2.30.32')
+	implementation 'software.amazon.awssdk:dynamodb-enhanced'
+	implementation 'software.amazon.awssdk:dynamodb'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'org.springframework.data:spring-data-commons'
 
 	//lombok
 	compileOnly 'org.projectlombok:lombok'
@@ -52,6 +64,10 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	//actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {

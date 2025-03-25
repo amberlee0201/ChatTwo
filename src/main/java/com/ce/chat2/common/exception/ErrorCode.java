@@ -13,7 +13,32 @@ public enum ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "GLOBAL_404_ERROR", "404 에러입니다. 요청한 데이터를 서버가 찾을 수 없습니다."),
     REQUEST_IS_NOT_VALID(HttpStatus.BAD_REQUEST, "REQUEST_IS_NOT_VALID","request 값이 잘못되었습니다. 혹은 json 역직렬화를 할 수 없는 형식입니다."),
 
-    USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER_NOT_FOUND", "존재하지 않는 회원입니다");
+    // Follow
+    FOLLOW_NOT_FOUND(HttpStatus.BAD_REQUEST, "FOLLOW_NOT_FOUND", "이 사용자는 친구가 아닙니다."),
+    ALREADY_FOLLOWING(HttpStatus.BAD_REQUEST, "ALREADY_FOLLOWING", "이미 친구입니다."),
+
+    //User
+    USER_NOT_FOUND(HttpStatus.BAD_REQUEST,"USER_NOT_FOUND", "존재하지 않는 유저입니다."),
+    UNAUTHORIZED_USER(HttpStatus.FORBIDDEN, "UNAUTHORIZED_USER", "권한이 없는 유저입니다."),
+
+    //Chat
+    CHAT_SEND_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT_SEND_EXCEPTION", "메세지 전송중 오류가 발생했습니다."),
+
+    //Participation
+    PARTICIPATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "PARTICIPATION_NOT_FOUND", "참여 정보를 찾을 수 없습니다."),
+
+    //AWS
+    UNAVAILABLE_S3(HttpStatus.SERVICE_UNAVAILABLE, "UNAVAILABLE_S3", "S3 서비스에러가 발생했습니다."),
+
+    // Room
+    ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "ROOM_NOT_FOUND", "존재하지 않는 방입니다."),
+    NO_FRIENDS_FOUND(HttpStatus.NOT_FOUND, "NO_FRIENDS_FOUND", "초대할 수 있는 친구가 없습니다."), 
+    NO_MEMBERS_FOUND(HttpStatus.NOT_FOUND, "NO_MEMBERS_FOUND", "방에 참여자가 없습니다."),
+
+    //File
+    UNSUPPORTED_FILE_FORMAT_EXCEPTION(HttpStatus.BAD_REQUEST,"UNSUPPORTED_FILE_FORMAT_EXCEPTION", "지원하지 않는 파일형식입니다."),
+    MAX_FILE_SIZE_EXCEEDED_EXCEPTION(HttpStatus.BAD_REQUEST,"MAX_FILE_SIZE_EXCEEDED_EXCEPTION", "최대 파일크기를 초과했습니다.."),
+    ;
 
     private final HttpStatus status;
     private final String code;

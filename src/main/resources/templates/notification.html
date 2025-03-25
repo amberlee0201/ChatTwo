@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>알림 목록</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0C356A;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    .container {
+      width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: white;
+      border: 2px solid #0174BE;
+      border-radius: 10px;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .title {
+      color: #FFC436;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      margin-top: 15px;
+    }
+
+    .notification-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .notification-item {
+      background-color: #FFF0CE;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-size: 16px;
+      text-align: left;
+    }
+
+    .clear-btn {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .clear-btn:hover {
+      background-color: #ff3b3b;
+    }
+
+    .nav-bar {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+      background-color: #0174BE;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .nav-btn {
+      background-color: #FFF0CE;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 5px;
+      position: relative; /* 배지를 위한 상대적 기준 */
+      display: inline-flex; /* 텍스트와 배지가 함께 정렬되도록 */
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .nav-btn.active {
+      background-color: #FFC436;
+    }
+
+    #notificationBadge {
+      position: absolute;
+      top: -8px; /* 버튼 상단에서 위로 */
+      right: -6px; /* 버튼 오른쪽 끝에서 약간 바깥으로 */
+      background-color: red;
+      color: white;
+      border-radius: 45%;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      display: none;
+    }
+
+  </style>
+</head>
+<link rel="stylesheet" th:href="@{/css/header.css}">
+<div th:replace="~{header :: header}"></div>
+<body>
+
+<h2 class="title">🔔 알림 목록</h2>
+
+<div class="container">
+  <ul id="notification-list" class="notification-list">
+    <li th:each="notification : ${notifications}" class="notification-item">
+      <span th:text="${notification.message}"></span>
+    </li>
+    <li th:if="${#lists.isEmpty(notifications)}" class="notification-item text-muted">
+      알림이 없습니다.
+    </li>
+  </ul>
+
+  <button id="deleteAllBtn" class="clear-btn">모든 알림 삭제</button> <!-- ✅ id 추가 / onclick 제거 -->
+</div>
+
+<div class="nav-bar">
+  <a class="btn nav-btn" role="button" href="/friends">친구 목록</a>
+  <a class="btn nav-btn" role="button" href="/rooms">채팅방</a>
+  <div class="nav-btn-wrapper">
+    <a class="btn nav-btn active" role="button" href="/notifications">
+      알림
+      <span id="notificationBadge" th:text="${#lists.size(notifications)}"></span>
+    </a>
+  </div>
+  <a class="btn nav-btn" role="button"
+     th:href="@{/users/{id}(id=${user != null and user.id != null ? user.id : 'test-user'})}">
+    내 프로필
+  </a>
+</div>
+
+<script th:inline="javascript">
+  let notificationCount = [[${#lists.size(notifications)}]] || 0;
+  window.userId = [[${user.id}]];
+</script>
+<script src="/js/notification.js"></script>
+
+</body>
+</html>

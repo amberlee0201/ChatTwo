@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat2</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #0C356A;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    .login-container {
+        background-color: #FFF0CE;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 300px;
+        text-align: center;
+    }
+    h1 {
+        color: #0C356A;
+        margin-bottom: 1.5rem;
+    }
+    .google-btn {
+        background-color: #0174BE;
+        color: #FFF0CE;
+        border: none;
+        padding: 0.75rem 1rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    .google-btn:hover {
+        background-color: #FFC436;
+        color: #0C356A;
+    }
+    .google-icon {
+        width: 60px;
+        height: 24px;
+        margin-right: 10px;
+    }
+    .logo-icon {
+      width: 240px;
+      height: 240px;
+      object-fit: cover;
+      margin-bottom: 3rem;
+    }
+    .login-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  </style>
+</head>
+  <body>
+  <div class="login-wrapper">
+    <img th:src="@{/images/chat2_logo.jpg}" alt="Chat2 Logo" class="logo-icon">
+    <div class="login-container">
+      <h1>Welcome to Chat2</h1>
+      <a href="/oauth2/authorization/google" class="google-btn">
+        <img th:src="@{/images/googleLogo.png}" alt="Google logo" class="google-icon">
+        login
+      </a>
+    </div>
+  </div>
+  </body>
+</html>

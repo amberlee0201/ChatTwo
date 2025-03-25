@@ -1,20 +1,52 @@
 package com.ce.chat2.participation.entity;
 
-import com.ce.chat2.common.entity.BaseEntity;
-import com.ce.chat2.room.entity.Room;
-import com.ce.chat2.user.entity.User;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.*;
 
-@Getter
+import java.time.Instant;
+
+@ToString
 @Builder
-@NoArgsConstructor
+@Setter
 @AllArgsConstructor
-public class Participation extends BaseEntity {
-    int id;
-    Room room;
-    User user;
-    boolean isOut;
+@NoArgsConstructor
+@DynamoDbBean
+public class Participation {
+
+    @Getter(onMethod_ = {@DynamoDbPartitionKey, @DynamoDbAttribute("UserId"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-UserId-index" })})
+    private Integer userId;
+
+    @Getter(onMethod_ = {@DynamoDbSortKey, @DynamoDbAttribute("RoomId"), @DynamoDbSecondaryPartitionKey(indexNames = { "RoomId-UserId-index", "RoomId-LastReadChatTime-index" })})
+    private String roomId;
+
+    @Getter(onMethod_ = {@DynamoDbAttribute("InvitedAt")})
+    private Instant invitedAt;
+
+    @Getter(onMethod_ = {@DynamoDbAttribute("InvitedBy")})
+    private Integer invitedBy;
+
+    @Getter(onMethod_ = {@DynamoDbAttribute("LastReadChatTime"), @DynamoDbSecondarySortKey(indexNames = { "RoomId-LastReadChatTime-index" })})
+    private long lastReadChatTime;
+
+    public static Participation of(Integer userId, String roomId, Integer invitedBy) {
+        Instant now = Instant.now();
+        return Participation.builder()
+                .userId(userId)
+                .roomId(roomId)
+                .invitedAt(now)
+                .invitedBy(invitedBy)
+                .build();
+    }
+
+    public static Participation of(Integer userId, String roomId) {
+        return Participation.builder()
+                .userId(userId)
+                .roomId(roomId)
+                .build();
+    }
+
+    public Participation updateLastReadChatTime(long chatTime){
+        this.lastReadChatTime = chatTime;
+        return this;
+    }
 }
