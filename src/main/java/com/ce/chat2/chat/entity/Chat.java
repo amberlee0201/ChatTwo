@@ -46,8 +46,8 @@ public class Chat {
     private Instant createdAt;
 
     public static Chat of(ChatRequestDto chatRequestDto){
-        Instant now = Instant.now();
-        String chatId = now + "#" + UUID.randomUUID();
+        Instant sendAt = Instant.ofEpochMilli(chatRequestDto.getSendTimeStamp());
+        String chatId = sendAt + "#" + UUID.randomUUID();
         return Chat.builder()
             .roomId(chatRequestDto.getRoomId())
             .chatId(chatId)
@@ -55,7 +55,7 @@ public class Chat {
             .content(chatRequestDto.getContent())
             .filePath(chatRequestDto.getFilePath())
             .fileType(chatRequestDto.getFileType())
-            .createdAt(now)
+            .createdAt(sendAt)
             .build();
     }
 

@@ -12,6 +12,7 @@ public class ChatRequestDto {
     private String fileName;
     private String fileType;
     private String filePath;
+    private long sendTimeStamp;
     private int userId;
 
     public void withRoomId(String roomId){

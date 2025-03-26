@@ -11,7 +11,9 @@ import com.ce.chat2.common.s3.S3Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.core.Authentication;
@@ -22,6 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class ChatController {
@@ -35,7 +38,7 @@ public class ChatController {
         @PathVariable("roomId") String roomId,
         Model model
     ){
-        ChatRoomDto chatRoomDto = chatService.getChatHistory(roomId);
+        ChatRoomDto chatRoomDto = chatService.getChatHistory(roomId, loginUser.getUser().getId());
 
         model.addAttribute("user", loginUser.getUser());
         model.addAttribute("roomId", roomId);
@@ -58,6 +61,7 @@ public class ChatController {
             chatRequestDto.withFile(s3Service.uploadImage(chatRequestDto.getFileData(),
             chatRequestDto.getFileName(), chatRequestDto.getFileType()));
         }
+        chatRequestDto.setSendTimeStamp(Instant.now().toEpochMilli());
 
         redisChatPubSubService.publish("chat"+roomId, chatRequestDto);
     }
