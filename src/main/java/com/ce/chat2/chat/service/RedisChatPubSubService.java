@@ -1,6 +1,5 @@
 package com.ce.chat2.chat.service;
 
-import com.ce.chat2.chat.dto.WebSocketChatDto;
 import com.ce.chat2.chat.dto.request.ChatRequestDto;
 import com.ce.chat2.chat.dto.response.ChatResponseDto;
 import com.ce.chat2.chat.entity.Chat;
@@ -46,21 +45,19 @@ public class RedisChatPubSubService implements MessageListener {
         User sender = userRepository.findById(dto.getUserId()).orElseThrow(UserNotFound::new);
         Chat chat = chatRepository.save(Chat.of(dto));
         List<Participation> participationList = participationRepository.findAllByRoomId(dto.getRoomId());
-
         updateRoom(room, chat);
 
         stringRedisTemplate.convertAndSend(channel, objectMapper.writeValueAsString(
-            WebSocketChatDto.of(dto.getRoomId(), chat, sender, participationList.size())));
+            ChatResponseDto.of(chat, sender, participationList.size(), dto.getRoomId())));
     }
 
     @Override
     public void onMessage(Message msg, byte[] pattern){
         String payload = new String(msg.getBody());
         try{
-            WebSocketChatDto dto = om.readValue(payload, WebSocketChatDto.class);
+            ChatResponseDto dto = om.readValue(payload, ChatResponseDto.class);
 
-            simpMessageSendingOperations.convertAndSend("/chat-sub/"+dto.getRoomId(),
-                ChatResponseDto.of(dto.getChat(), dto.getSender(), dto.getParticipationSize()));
+            simpMessageSendingOperations.convertAndSend("/chat-sub/"+dto.getRoomId(),dto);
         }catch (JsonProcessingException e){
             throw new ChatSendException(e.getMessage());
         }
