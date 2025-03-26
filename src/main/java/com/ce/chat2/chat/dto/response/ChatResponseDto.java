@@ -14,6 +14,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class ChatResponseDto {
+    private String roomId;
     private int userId;
     private String senderName;
     private String senderImage;
@@ -24,8 +25,9 @@ public class ChatResponseDto {
     private String sendAt;
     private long timestamp;
 
-    public static ChatResponseDto of(Chat chat, User sender, int readCnt){
+    public static ChatResponseDto of(Chat chat, User sender, int readCnt, String roomId){
         return ChatResponseDto.builder()
+            .roomId(roomId)
             .userId(sender.getId())
             .senderName(sender.getName())
             .senderImage(sender.getImage())
