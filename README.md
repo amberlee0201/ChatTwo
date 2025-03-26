@@ -4,8 +4,9 @@
 
 **ChatTwo**는 카카오톡을 벤치마킹한 실시간 채팅 서비스입니다.  
 WebSocket + Redis Pub/Sub 구조를 통해 실시간 통신을 구현하고,  
-Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 파일 전송, 메시지 읽음 처리 기능 등을 제공합니다.  
-전체 인프라는 AWS 상에 구축되었으며, Terraform과 ArgoCD(GitOps)를 통해 선언적으로 관리되고, EKS(Kubernetes) 환경에서 실행됩니다.
+Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 파일 전송 기능 등을 제공합니다.  
+전체 인프라는 AWS 상에 구축되었으며, Terraform과 ArgoCD(GitOps)를 통해 선언적으로 관리되고,  
+EKS(Kubernetes) 환경에서 실행됩니다.
 
 ---
 
@@ -16,8 +17,9 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 파일 전�
 - 친구 추가, 삭제, 검색
 - 채팅방 생성, 조회, 입장, 나가기, 친구 초대
 - 실시간 채팅 (WebSocket + STOMP + Redis Pub/Sub)
-- 파일 전송, 메시지 읽음 처리, 무한 스크롤 페이징
+- 파일 전송, 무한 스크롤 페이징
 - 알림 기능 (친구 추가, 새 메시지 등)
+
 ---
 
 ## 🔥 팀원 역할
@@ -98,15 +100,15 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 파일 전�
 
 ```
 📂 manifest/
-│   ├── 📄 chat2-app-manifest.yaml
-│   │   ├── service
-│   │   ├── ingress
-│   │   ├── deployment
-│   │   ├── hpa
-│   ├── 📄 redis.yaml
-│   │   ├── service
-│   │   ├── deployment
-└── └── └── config
+├───📄 chat2-app-manifest.yaml
+│   ├── service
+│   ├── ingress
+│   ├── deployment
+│   ├── hpa
+└── 📄 redis.yaml
+    ├── service
+    ├── deployment
+    └── config
 
 ```
 
@@ -116,14 +118,14 @@ Google OAuth 로그인, 친구 관리, 채팅방 참여 및 초대, 파일 전�
 📂 terraform/
 ├── 📂 envs/dev              # 개발 환경
 └── 📂 modules/
-│   ├── 📂 backend
-│   ├── 📂 dynamodb
-│   ├── 📂 ecr
-│   ├── 📂 eks-karpenter
-│   ├── 📂 rds
-│   ├── 📂 route53-acm
-│   ├── 📂 s3-cloudfront
-└── └── 📂 vpc
+    ├── 📂 backend
+    ├── 📂 dynamodb
+    ├── 📂 ecr
+    ├── 📂 eks-karpenter
+    ├── 📂 rds
+    ├── 📂 route53-acm
+    ├── 📂 s3-cloudfront
+    └── 📂 vpc
 ```
 
 ---
