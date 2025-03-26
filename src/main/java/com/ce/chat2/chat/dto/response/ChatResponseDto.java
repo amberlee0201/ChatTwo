@@ -39,4 +39,17 @@ public class ChatResponseDto {
             .timestamp(chat.getCreatedAt().toEpochMilli())
             .build();
     }
+    public static ChatResponseDto of(Chat chat, User sender, int readCnt){
+        return ChatResponseDto.builder()
+            .userId(sender.getId())
+            .senderName(sender.getName())
+            .senderImage(sender.getImage())
+            .content(chat.getContent())
+            .readCnt(readCnt)
+            .filePath(chat.getFilePath())
+            .fileType(chat.getFileType())
+            .sendAt(chat.timeToString())
+            .timestamp(chat.getCreatedAt().toEpochMilli())
+            .build();
+    }
 }
